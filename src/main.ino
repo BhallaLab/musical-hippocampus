@@ -58,6 +58,17 @@ int input_[3];
 
 int num_of_buttons_pressed_ = 0;
 
+void resetMatchingResult( )
+{
+    Serial.println( "Reset sequence matching results" );
+    for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+    {
+        running_index_ = 0;
+        matched_seq_[i] = 0;
+    }
+        
+}
+
 // the setup routine runs once when you press reset:
 void setup()
 {
@@ -155,8 +166,8 @@ void matchSequences( void )
     int currVal = input_[0];
 
     bool noneMatch = true;
-    Serial.print( "Running index ");
-    Serial.println( running_index_ );
+    //Serial.print( "Running index ");
+    //Serial.println( running_index_ );
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
     {
         if( currVal == sequences_[i][running_index_] )
@@ -180,11 +191,10 @@ void matchSequences( void )
         {
             if( matched_seq_[i] == seq_length_[i] )
             {
-                Serial.print( "Sequence match " );
+                Serial.print( "Sequence matched: " );
                 Serial.println( i );
                 // Reset everything
-                for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
-                    matched_seq_[i] = 0;
+                resetMatchingResult( );
                 break;
             }
             
@@ -207,7 +217,7 @@ void test( void )
         buttonId -= 48;
         if( buttonId < NUMBER_OF_BUTTONS )
         {
-            Serial.print( " Pressed button " );
+            Serial.print( " - Pressed button: " );
             Serial.print( buttonId );
             Serial.print( " " );
             Serial.println( num_of_buttons_pressed_ );
@@ -216,11 +226,8 @@ void test( void )
             addInput( buttonId );
             matchSequences();
         }
-
-        if( num_of_buttons_pressed_ == 0 )
-        {
-            Serial.println( "Time to match the sequence" );
-        }
+        else if( buttonId == 9 )
+            resetMatchingResult( );
 
     }
 }
