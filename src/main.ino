@@ -174,6 +174,22 @@ void matchSequences( void )
             matched_seq_[i] = 0;
         return;
     }
+    else
+    {
+        for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+        {
+            if( matched_seq_[i] == seq_length_[i] )
+            {
+                Serial.print( "Sequence match " );
+                Serial.println( i );
+                // Reset everything
+                for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+                    matched_seq_[i] = 0;
+                break;
+            }
+            
+        }
+    }
 
     running_index_ += 1;
     printArray(matched_seq_, NUMBER_OF_SEQ);
