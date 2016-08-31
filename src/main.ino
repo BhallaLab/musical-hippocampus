@@ -18,6 +18,30 @@
 #define NUMBER_OF_BUTTONS 7
 #define READ_DELAY     2
 #define WRITE_DELAY    10
+#define NUMBER_OF_SEQ   3
+#define MAX_SEQUENCE_LENGTH 10
+
+#define SEQ1_LEN    6
+#define SEQ2_LEN    7
+#define SEQ3_LEN    11
+
+// Length of sequences.
+int seq_length_[NUMBER_OF_SEQ] = { SEQ1_LEN, SEQ2_LEN, SEQ3_LEN };
+
+int seq1[SEQ1_LEN] = { 0, 1, 2, 3, 4, 5 };
+int seq2[SEQ2_LEN] = { 0, 1, 0, 0, 2, 2, 3 };
+int seq3[SEQ3_LEN] = { 1, 1, 1, 0, 0, 0, 2, 2, 2, 3, 1 };
+int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3 };
+
+/**
+ * @brief At each step it tracks which sequence is a poteintial match.
+ */
+int matched_seq_[NUMBER_OF_SEQ+1];
+
+/**
+ * @brief Which index is being matched now.
+ */
+int running_index_ = 0;
 
 /*  Running mean of signal. */
 float running_mean_ = 0.0;
@@ -25,12 +49,12 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = { 12, 11, 10, 9, 8, 7, 6 };
+int buttonList_[NUMBER_OF_BUTTONS] = { 6, 7, 8, 9, 10, 11 };
 
 /**
  * @brief Input from button is stored here.
  */
-int input_[NUMBER_OF_BUTTONS] = {0, 0, 0, 0, 0, 0};
+int input_[3];
 
 int num_of_buttons_pressed_ = 0;
 
@@ -43,6 +67,9 @@ void setup()
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
         pinMode( buttonList_[i], INPUT );
+
+    for (size_t i = 0; i < 3; i++) 
+        input_[i] = -1;
 
 }
 
@@ -102,6 +129,56 @@ void pressButton( unsigned int buttonId )
     pinMode( buttonList_[ buttonId ], INPUT );
 }
 
+// prepend the pressed button value at the begining of input. Shift everyone
+// else to right.
+void addInput( int input )
+{
+    for (size_t i = 2; i > 0; i--) 
+        input_[i] = input_[i-1];
+    input_[0] = input;
+}
+
+void printArray( int* array, size_t size)
+{
+    for (size_t i = 0; i < size; i++) 
+    {
+        Serial.print( array[i] );
+        Serial.print( " " );
+        
+    }
+    Serial.println(" ");
+}
+
+void matchSequences( void )
+{
+    // At any time, the current button pressed is at input_[0]
+    int currVal = input_[0];
+
+    bool noneMatch = true;
+    Serial.print( "Running index ");
+    Serial.println( running_index_ );
+    for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+    {
+        if( currVal == sequences_[i][running_index_] )
+        {
+            matched_seq_[i] += 1;
+            noneMatch = false;
+        }
+        else
+            matched_seq_[i] += 0;
+    }
+    if( noneMatch )
+    {
+        running_index_ = 0;
+        for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+            matched_seq_[i] = 0;
+        return;
+    }
+
+    running_index_ += 1;
+    printArray(matched_seq_, NUMBER_OF_SEQ);
+}
+
 /**
  * @brief Does the testing.
  */
@@ -120,7 +197,8 @@ void test( void )
             Serial.println( num_of_buttons_pressed_ );
             num_of_buttons_pressed_ += 1;
             num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
-            input_[ num_of_buttons_pressed_ ] = buttonId;
+            addInput( buttonId );
+            matchSequences();
         }
 
         if( num_of_buttons_pressed_ == 0 )
