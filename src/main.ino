@@ -15,30 +15,24 @@
  */
 
 #define WINDOW_SIZE 20
-
-/**
- * @brief Keep the running values of signal.
- */
-int signal_[WINDOW_SIZE];
+#define NUMBER_OF_BUTTONS 7
+#define READ_DELAY     2
+#define WRITE_DELAY    10
 
 /*  Running mean of signal. */
 float running_mean_ = 0.0;
 
-double computeMean(  )
-{
-    double sum = 0.0;
-    for (size_t i = 0; i < WINDOW_SIZE; i++) 
-        sum += signal_[i];
-    running_mean_ = sum / WINDOW_SIZE;
-    return running_mean_;
-}
+/*  List of buttons to get input from 
+ *  PIN-13 is never a good idea as input/output pin
+ */
+int buttonList_[NUMBER_OF_BUTTONS] = { 12, 11, 10, 9, 8, 7, 6 };
 
-void appendToSignal( int sensorValue )
-{
-    for (size_t i = 0; i < WINDOW_SIZE - 1; i++) 
-        signal_[i] = signal_[i+1];
-    signal_[WINDOW_SIZE-1] = sensorValue;
-}
+/**
+ * @brief Input from button is stored here.
+ */
+int input_[NUMBER_OF_BUTTONS] = {0, 0, 0, 0, 0, 0};
+
+int num_of_buttons_pressed_ = 0;
 
 // the setup routine runs once when you press reset:
 void setup()
@@ -46,52 +40,105 @@ void setup()
     // initialize serial communication at 9600 bits per second:
     Serial.begin(19200);
 
-    pinMode( A2, OUTPUT );
-    pinMode( 13, OUTPUT );
+    // Set the button to be read-only. 
+    for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
+        pinMode( buttonList_[i], INPUT );
 
-    digitalWrite( A2, HIGH );
+}
 
-    pinMode( A1, OUTPUT );
-    digitalWrite( A1, LOW );
+/**
+ * @brief Print the read input onto serial port. Does nothing else. 
+ * Only for debugging purpose.
+ */
+void printInput( )
+{
+    for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
+    {
+        Serial.print( input_[i] );
+        Serial.print( ' ' );
+    }
+}
 
-    /* Initialize signal  */
-    for (size_t i = 0; i < WINDOW_SIZE; i++) 
-        signal_[i] = 10;
+/**
+ * @brief This function reads the input from buttons and does nothing else.
+ * It will keep these values in global array input_
+ */
+unsigned long readInput( void )
+{
+    unsigned long sum = 0;
+    for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
+    {
+        int val = digitalRead( buttonList_[i] );
+        sum = sum + pow(4, i) * val;
+        //Serial.println( val );
+        input_[i] = val; 
+        delay(READ_DELAY);
+    }
+    return sum;
+}
 
+int waitForKeypress( void )
+{
+    int val = -1;
+    while(true)
+    {
+        for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
+        {
+            delay(READ_DELAY);
+            val = digitalRead( buttonList_[i] );
+            if( val == 1 )
+                return i;
+        }
+    }
+    return -1;
+}
+
+void pressButton( unsigned int buttonId )
+{
+    // Press button no buttonId 
+    pinMode( buttonList_[ buttonId ], OUTPUT );
+    digitalWrite( buttonList_[ buttonId ], HIGH );
+    delay( WRITE_DELAY );
+    pinMode( buttonList_[ buttonId ], INPUT );
+}
+
+/**
+ * @brief Does the testing.
+ */
+void test( void )
+{
+    // Read from serial port the number of button.
+    if( Serial.available() > 0 )
+    {
+        int buttonId = Serial.read();
+        buttonId -= 48;
+        if( buttonId < NUMBER_OF_BUTTONS )
+        {
+            Serial.print( " Pressed button " );
+            Serial.print( buttonId );
+            Serial.print( " " );
+            Serial.println( num_of_buttons_pressed_ );
+            num_of_buttons_pressed_ += 1;
+            num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
+            input_[ num_of_buttons_pressed_ ] = buttonId;
+        }
+
+        if( num_of_buttons_pressed_ == 0 )
+        {
+            Serial.println( "Time to match the sequence" );
+        }
+
+    }
 }
 
 // the loop routine runs over and over again forever:
 void loop() 
 {
     // read the input on analog pin 0:
-    int sensorValue = analogRead(A0);
-    appendToSignal( sensorValue );
-    computeMean( );
+    //readInput();
+    // For debug purpose, print the values read.
+    //printInput( );
+    //setOutput();
 
-#if 0
-    for (size_t i = 0; i < WINDOW_SIZE; i++) 
-    {
-        Serial.print( signal_[i] );
-        Serial.print( ' ' );
-    }
-#endif
-
-    Serial.print( sensorValue );
-    Serial.print( ' ' );
-    Serial.print( running_mean_ );
-    Serial.print( '\n' );
-    if( sensorValue > (1.1 * running_mean_) )
-    {
-        Serial.println( "Trigger" );
-        for (size_t i = 0; i < 5; i++) 
-        {
-            digitalWrite( 13, HIGH );
-            delay( 30 );
-            digitalWrite( 13, LOW);
-            delay( 30 );
-            
-        }
-    }
-    digitalWrite( 13, LOW );
-    delay(1); 
+    test( );
 }
