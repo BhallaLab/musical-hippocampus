@@ -62,10 +62,8 @@ void resetMatchingResult( )
 {
     Serial.println( "Reset sequence matching results" );
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
-    {
-        running_index_ = 0;
         matched_seq_[i] = 0;
-    }
+    running_index_ = 0;
         
 }
 
@@ -151,13 +149,14 @@ void addInput( int input )
 
 void printArray( int* array, size_t size)
 {
+    Serial.print( "<" );
     for (size_t i = 0; i < size; i++) 
     {
         Serial.print( array[i] );
-        Serial.print( " " );
+        Serial.print( "," );
         
     }
-    Serial.println(" ");
+    Serial.println(">");
 }
 
 void matchSequences( void )
@@ -180,6 +179,7 @@ void matchSequences( void )
     }
     if( noneMatch )
     {
+        Serial.print('x');
         running_index_ = 0;
         for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
             matched_seq_[i] = 0;
@@ -187,22 +187,21 @@ void matchSequences( void )
     }
     else
     {
+        running_index_ += 1;
         for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
         {
             if( matched_seq_[i] == seq_length_[i] )
             {
-                Serial.print( "Sequence matched: " );
+                Serial.print( "\n|| Sequence matched: " );
                 Serial.println( i );
                 // Reset everything
                 resetMatchingResult( );
                 break;
             }
-            
         }
     }
 
-    running_index_ += 1;
-    printArray(matched_seq_, NUMBER_OF_SEQ);
+    //printArray(matched_seq_, NUMBER_OF_SEQ);
 }
 
 /**
@@ -217,10 +216,9 @@ void test( void )
         buttonId -= 48;
         if( buttonId < NUMBER_OF_BUTTONS )
         {
-            Serial.print( " - Pressed button: " );
             Serial.print( buttonId );
             Serial.print( " " );
-            Serial.println( num_of_buttons_pressed_ );
+            //Serial.println( num_of_buttons_pressed_ );
             num_of_buttons_pressed_ += 1;
             num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
             addInput( buttonId );
