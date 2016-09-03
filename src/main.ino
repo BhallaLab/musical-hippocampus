@@ -20,6 +20,7 @@
 #define WRITE_DELAY    10
 #define NUMBER_OF_SEQ   3
 #define MAX_SEQUENCE_LENGTH 10
+#define MIN_SEQUENCE_LENGTH 6
 
 #define SEQ1_LEN    6
 #define SEQ2_LEN    7
@@ -29,19 +30,20 @@
 int seq_length_[NUMBER_OF_SEQ] = { SEQ1_LEN, SEQ2_LEN, SEQ3_LEN };
 
 int seq1[SEQ1_LEN] = { 0, 1, 2, 3, 4, 5 };
-int seq2[SEQ2_LEN] = { 0, 1, 0, 0, 2, 2, 3 };
+int seq2[SEQ2_LEN] = { 0, 1, 0, 1, 2, 3, 1 };
 int seq3[SEQ3_LEN] = { 1, 1, 1, 0, 0, 0, 2, 2, 2, 3, 1 };
 int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3 };
 
 /**
  * @brief At each step it tracks which sequence is a poteintial match.
  */
-int matched_seq_[NUMBER_OF_SEQ+1];
+double matched_seq_[NUMBER_OF_SEQ+1];
 
 /**
  * @brief Which index is being matched now.
  */
-int running_index_ = 0;
+int running_index_[NUMBER_OF_SEQ];
+int n_button_press_ = 0;
 
 /*  Running mean of signal. */
 float running_mean_ = 0.0;
@@ -61,9 +63,12 @@ int num_of_buttons_pressed_ = 0;
 void resetMatchingResult( )
 {
     Serial.println( "Reset sequence matching results" );
+    n_button_press_ = 0;
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
-        matched_seq_[i] = 0;
-    running_index_ = 0;
+    {
+        matched_seq_[i] = 0.0;
+        running_index_[i] = 0;
+    }
         
 }
 
@@ -77,11 +82,17 @@ void setup()
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
         pinMode( buttonList_[i], INPUT );
 
+    for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+    {
+        running_index_[i] = 0;
+    }
+
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
 
 }
 
+#if 0
 /**
  * @brief Print the read input onto serial port. Does nothing else. 
  * Only for debugging purpose.
@@ -94,6 +105,7 @@ void printInput( )
         Serial.print( ' ' );
     }
 }
+#endif
 
 /**
  * @brief This function reads the input from buttons and does nothing else.
@@ -147,20 +159,59 @@ void addInput( int input )
     input_[0] = input;
 }
 
-void printArray( int* array, size_t size)
+void printArray( double* array, size_t size)
 {
-    Serial.print( "<" );
+    Serial.print( " <" );
     for (size_t i = 0; i < size; i++) 
     {
         Serial.print( array[i] );
         Serial.print( "," );
         
     }
-    Serial.println(">");
+    Serial.print("> ");
+}
+
+void printIArray( int* array, size_t size)
+{
+    Serial.print( " |" );
+    for (size_t i = 0; i < size; i++) 
+    {
+        Serial.print( array[i] );
+        Serial.print( "," );
+        
+    }
+    Serial.println(" |");
+}
+
+/**
+ * @brief Get the maximum value from an array.
+ *
+ * @param array
+ * @param arrayLen
+ *
+ * @return 
+ */
+double maxInDArr( double* array, int arrayLen )
+{
+    double maximum = 0.0;
+    for (size_t i = 0; i < arrayLen; i++) 
+        if(maximum > array[i])
+            maximum = array[i];
+    return maximum;
+}
+
+int maxInIArr( int* array, int arrayLen )
+{
+    int maximum = 0.0;
+    for (size_t i = 0; i < arrayLen; i++) 
+        if(maximum > array[i])
+            maximum = array[i];
+    return maximum;
 }
 
 void matchSequences( void )
 {
+    n_button_press_ += 1;
     // At any time, the current button pressed is at input_[0]
     int currVal = input_[0];
 
@@ -169,28 +220,42 @@ void matchSequences( void )
     //Serial.println( running_index_ );
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
     {
-        if( currVal == sequences_[i][running_index_] )
+        if( currVal == sequences_[i][running_index_[i]] )
         {
-            matched_seq_[i] += 1;
+            running_index_[i] += 1;
+            matched_seq_[i] += 1.0;
             noneMatch = false;
         }
         else
-            matched_seq_[i] += 0;
+            // when there is no match, decay every element to x% of its value.
+            matched_seq_[i] *= 0.9;
     }
+
+    /**
+     * @param noneMatch
+     *
+     * @brief When noneMatch is true i.e. input is not part of any sequence, we
+     * don't reset everything to zero. Rather decay everything to 90% of its
+     * total value. We still print a character to indicate error.
+     *
+     */
     if( noneMatch )
     {
         Serial.print('x');
-        running_index_ = 0;
-        for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
-            matched_seq_[i] = 0;
-        return;
+        int maxRunningIndex = maxInIArr( running_index_, NUMBER_OF_SEQ);
+        if( n_button_press_ > 2 * MAX_SEQUENCE_LENGTH && 
+                 maxInDArr( matched_seq_, NUMBER_OF_SEQ ) < MIN_SEQUENCE_LENGTH )
+        {
+            Serial.println( "Ha ha! It's better to restart now");
+            resetMatchingResult( );
+        }
     }
     else
     {
-        running_index_ += 1;
         for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
         {
-            if( matched_seq_[i] == seq_length_[i] )
+            if( running_index_[i] >= seq_length_[i] &&
+                    matched_seq_[i] / running_index_[i] >= 0.8 )
             {
                 Serial.print( "\n|| Sequence matched: " );
                 Serial.println( i );
@@ -201,7 +266,9 @@ void matchSequences( void )
         }
     }
 
-    //printArray(matched_seq_, NUMBER_OF_SEQ);
+    printArray( matched_seq_, NUMBER_OF_SEQ);
+    //printIArray( running_index_, NUMBER_OF_SEQ);
+    Serial.print( '\n' );
 }
 
 /**
@@ -236,8 +303,6 @@ void loop()
     // read the input on analog pin 0:
     //readInput();
     // For debug purpose, print the values read.
-    //printInput( );
-    //setOutput();
 
     test( );
 }
