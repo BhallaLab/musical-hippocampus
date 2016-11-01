@@ -51,7 +51,7 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = { 6, 7, 8, 9, 10, 11 };
+int buttonList_[NUMBER_OF_BUTTONS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 /**
  * @brief Input from button is stored here.
