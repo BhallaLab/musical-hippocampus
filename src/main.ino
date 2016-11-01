@@ -15,7 +15,7 @@
  */
 
 #define WINDOW_SIZE 20
-#define NUMBER_OF_BUTTONS 7
+#define NUMBER_OF_BUTTONS 8
 #define READ_DELAY     2
 #define WRITE_DELAY    10
 #define NUMBER_OF_SEQ   3
@@ -51,7 +51,7 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 
 /**
  * @brief Input from button is stored here.
@@ -116,7 +116,7 @@ unsigned long readInput( void )
     unsigned long sum = 0;
     for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
-        int val = digitalRead( buttonList_[i] );
+        int val = analogRead( buttonList_[i] );
         sum = sum + pow(4, i) * val;
         //Serial.println( val );
         input_[i] = val; 
