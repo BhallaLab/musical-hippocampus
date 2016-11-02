@@ -16,7 +16,9 @@
 
 #define WINDOW_SIZE 20
 #define NUMBER_OF_BUTTONS 8
+
 #define READ_DELAY     2
+
 #define WRITE_DELAY    10
 #define NUMBER_OF_SEQ   3
 #define MAX_SEQUENCE_LENGTH 10
@@ -33,6 +35,8 @@ int seq1[SEQ1_LEN] = { 0, 1, 2, 3, 4, 5 };
 int seq2[SEQ2_LEN] = { 0, 1, 0, 1, 2, 3, 1 };
 int seq3[SEQ3_LEN] = { 1, 1, 1, 0, 0, 0, 2, 2, 2, 3, 1 };
 int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3 };
+
+#define THRESHOLD_FOR_BUTTON_PRESS      100
 
 /**
  * @brief At each step it tracks which sequence is a poteintial match.
@@ -125,22 +129,37 @@ unsigned long readInput( void )
     return sum;
 }
 
-int waitForKeypress( void )
+/**
+ * @brief which button is pressed by user. If no button is pressed, it returns
+ * -1.
+ *
+ * @return The index of button in buttonList_  if a button is pressed, -1
+ * otherwise.
+ */
+int whichButtonIsPressed( void )
 {
     int val = -1;
-    while(true)
+    for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
-        for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
+        delay(READ_DELAY);
+        val = analogRead( buttonList_[i] );
+        if( val >= THRESHOLD_FOR_BUTTON_PRESS )
         {
-            delay(READ_DELAY);
-            val = digitalRead( buttonList_[i] );
-            if( val == 1 )
-                return i;
+            // Now wait of button release.
+            // Wait for 500 ms for button release else continue.
+            for (size_t ii = 0; ii < 500 / READ_DELAY; ii++) 
+            {
+                delay( READ_DELAY );
+                val = analogRead( buttonList_[i] );
+                if( val < THRESHOLD_FOR_BUTTON_PRESS )
+                    return i;
+            }
         }
     }
     return -1;
 }
 
+// This is for testing purpose.
 void pressButton( unsigned int buttonId )
 {
     // Press button no buttonId 
@@ -300,9 +319,12 @@ void test( void )
 // the loop routine runs over and over again forever:
 void loop() 
 {
-    // read the input on analog pin 0:
-    //readInput();
-    // For debug purpose, print the values read.
+    int buttonId = whichButtonIsPressed( );
+    if( buttonId >= 0 )
+    {
+        Serial.print( "Button pressed : " );
+        Serial.println( buttonId );
+    }
 
-    test( );
+    //test( );
 }
