@@ -88,14 +88,14 @@ void setup()
     // initialize serial communication at 9600 bits per second:
     Serial.begin(19200);
 
+    pinMode( BUZZOR_PIN, OUTPUT );
+
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
         pinMode( buttonList_[i], INPUT );
 
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
-    {
         running_index_[i] = 0;
-    }
 
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
@@ -235,6 +235,28 @@ int maxInIArr( int* array, int arrayLen )
     return maximum;
 }
 
+/**
+ * @brief Play a tone for matched sequence i. Currently it plays by my
+ * modulating the pulse width.
+ *
+ * @param i
+ */
+void playTone( size_t i )
+{
+    int duration = 50 * 1000;                  /* In micro-seconds. */
+    int width = 1000;                           /* In micro-seconds. */
+    int onTime = 100 + 1 * 100;
+    for (size_t i = 0; i < 100; i++) 
+    {
+        digitalWrite( BUZZOR_PIN, HIGH );
+        delayMicroseconds( onTime );
+        digitalWrite( BUZZOR_PIN, LOW );
+        delayMicroseconds( width - onTime );
+        Serial.print( i );
+        Serial.print( ' ' );
+    }
+}
+
 void matchSequences( void )
 {
     n_button_press_ += 1;
@@ -283,7 +305,8 @@ void matchSequences( void )
             if( running_index_[i] >= seq_length_[i] &&
                     matched_seq_[i] / running_index_[i] >= 0.8 )
             {
-                Serial.print( "\n|| Sequence matched: " );
+                // i'th sequence is matched.
+                Serial.print( "\n|| Sequence matched." );
                 Serial.println( i );
                 // Reset everything
                 resetMatchingResult( );
@@ -335,6 +358,7 @@ void loop()
         num_of_buttons_pressed_ += 1;
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
+        playTone( buttonId );
         matchSequences();
 
         if( buttonId == RESET_BUTTON )
