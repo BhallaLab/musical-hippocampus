@@ -52,7 +52,8 @@ OBJDIR            = $(PROJECT_DIR)/bin/$(BOARD_TAG)/$(CURRENT_DIR)
 
 ## INO file and other cpp files
 LOCAL_INO_SRCS     = $(PROJECT_DIR)/src/main.ino
-LOCAL_CPP_SRCS     = $(PROJECT_DIR)/src/globals.cpp 
+LOCAL_CPP_SRCS     = $(PROJECT_DIR)/src/globals.cpp  \
+		     $(PROJECT_DIR)/src/LPD8806/LPD8806.cpp 
 
 ### Do not touch - the path to Arduino.mk, inside the ARDMK_DIR
 include $(ARDMK_DIR)/Arduino.mk

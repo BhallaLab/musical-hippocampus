@@ -15,6 +15,7 @@
  */
 
 #include "pitches.h"
+#include "led.h"
 
 #define WINDOW_SIZE 20
 #define NUMBER_OF_BUTTONS 8
@@ -99,7 +100,7 @@ void resetMatchingResult( )
 // the setup routine runs once when you press reset:
 void setup()
 {
-    // initialize serial communication at 9600 bits per second:
+    // Setup up baud rate
     Serial.begin(19200);
 
     pinMode( BUZZER_PIN, OUTPUT );
@@ -113,6 +114,19 @@ void setup()
 
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
+
+
+    /*-----------------------------------------------------------------------------
+     *  Now setup LEDs 
+     *-----------------------------------------------------------------------------*/
+    strip.begin( );
+    strip.show( );
+
+    //for (size_t i = 0; i < NUMBER_OF_STRIPS; i++) 
+    //{
+        //leds_[i].begin();
+        //leds_[i].show();
+    //}
 
 }
 
@@ -257,10 +271,10 @@ int maxInIArr( int* array, int arrayLen )
  */
 void playNote( int buttonId, long duration = 0 )
 {
-    Serial.print( "Playing button " );
-    Serial.print( buttonId );
-    Serial.print( " Freq : " );
-    Serial.println( buttonTones_[ buttonId ] );
+    //Serial.print( "Playing button " );
+    //Serial.print( buttonId );
+    //Serial.print( " Freq : " );
+    //Serial.println( buttonTones_[ buttonId ] );
     if( duration == 0 )
         duration = NOTE_DURATION;
     tone( BUZZER_PIN, buttonTones_[buttonId], duration );
@@ -376,18 +390,27 @@ void loop()
     int buttonId = whichButtonIsPressed( );
     if( buttonId >= 0 )
     {
-        Serial.print( "Button pressed : " );
-        Serial.println( buttonId );
+        //Serial.print( "Button pressed : " );
+        //Serial.println( buttonId );
         //Serial.println( num_of_buttons_pressed_ );
         num_of_buttons_pressed_ += 1;
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
         playNote( buttonId );
+        lightupLED( buttonId );
         matchSequences();
 
         if( buttonId == RESET_BUTTON )
             resetMatchingResult( );
     }
+
+    // Send a simple pixel chase in...
+    //colorChase(strip.Color(127,   0,   0), 50); // Red
+    //colorChase(strip.Color(127, 127,   0), 50); // Yellow
+    //colorChase(strip.Color(  0, 127,   0), 50); // Green
+    //colorChase(strip.Color(  0, 127, 127), 50); // Cyan
+    //colorChase(strip.Color(  0,   0, 127), 50); // Blue
+    //colorChase(strip.Color(127,   0, 127), 50); // Violet
 
     //test( );
 }
