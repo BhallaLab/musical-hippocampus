@@ -57,6 +57,12 @@ float running_mean_ = 0.0;
  */
 int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 
+// This button reset the matching results. Everything starts from the begining.
+#define RESET_BUTTON 9
+
+// Pin at which buzzor is attached
+#define BUZZOR_PIN  9
+
 /**
  * @brief Input from button is stored here.
  */
@@ -151,6 +157,7 @@ int whichButtonIsPressed( void )
             {
                 delay( READ_DELAY );
                 val = analogRead( buttonList_[i] );
+
                 if( val < THRESHOLD_FOR_BUTTON_PRESS )
                     return i;
             }
@@ -324,6 +331,14 @@ void loop()
     {
         Serial.print( "Button pressed : " );
         Serial.println( buttonId );
+        //Serial.println( num_of_buttons_pressed_ );
+        num_of_buttons_pressed_ += 1;
+        num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
+        addInput( buttonId );
+        matchSequences();
+
+        if( buttonId == RESET_BUTTON )
+            resetMatchingResult( );
     }
 
     //test( );
