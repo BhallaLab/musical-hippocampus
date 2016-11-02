@@ -71,7 +71,7 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 #define BUZZER_PIN  9
 
 // For each button assign a tone.
-int buttonTones_[ ] = { NOTE_C7, NOTE_D7, NOTE_E7, NOTE_F7 , NOTE_G7, NOTE_A7, NOTE_B7 
+int buttonTones_[ ] = { NOTE_C7, NOTE_D7, NOTE_E7, NOTE_FS7 , NOTE_G7, NOTE_A7, NOTE_B7 
     , NOTE_A2 // Last button is reset button.
 };
 
@@ -255,13 +255,29 @@ int maxInIArr( int* array, int arrayLen )
  *
  * @param i
  */
-void playNote( int buttonId )
+void playNote( int buttonId, long duration = 0 )
 {
-    Serial.print( "Freq : " );
+    Serial.print( "Playing button " );
     Serial.print( buttonId );
-    Serial.print( " : " );
-    Serial.print( buttonTones_[ buttonId ] );
-    tone( BUZZER_PIN, buttonTones_[buttonId], NOTE_DURATION );
+    Serial.print( " Freq : " );
+    Serial.println( buttonTones_[ buttonId ] );
+    if( duration == 0 )
+        duration = NOTE_DURATION;
+    tone( BUZZER_PIN, buttonTones_[buttonId], duration );
+}
+
+void playSequece( int seqid )
+{
+    // Play sequence with id seq
+    int* seq = sequences_[ seqid ];
+    int seqLength = seq_length_[ seqid ];
+    for (size_t i = 0; i < seqLength; i++) 
+    {
+        noTone( seq[i] );
+        playNote( seq[i], 500 );
+        delay( 500 );
+    }
+    noTone( seq[ seqLength - 1] );
 }
 
 void matchSequences( void )
@@ -315,6 +331,7 @@ void matchSequences( void )
                 // i'th sequence is matched.
                 Serial.print( "\n|| Sequence matched." );
                 Serial.println( i );
+                playSequece( i );
                 // Reset everything
                 resetMatchingResult( );
                 break;
