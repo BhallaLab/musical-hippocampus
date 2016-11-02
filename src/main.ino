@@ -14,6 +14,8 @@
  *        License:  GNU GPL2
  */
 
+#include "pitches.h"
+
 #define WINDOW_SIZE 20
 #define NUMBER_OF_BUTTONS 8
 
@@ -59,9 +61,20 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 
 // This button reset the matching results. Everything starts from the begining.
 #define RESET_BUTTON 9
+#define NOTE_DURATION 300
 
+
+/*-----------------------------------------------------------------------------
+ *  Buzzer related
+ *-----------------------------------------------------------------------------*/
 // Pin at which buzzor is attached
-#define BUZZOR_PIN  9
+#define BUZZER_PIN  9
+
+// For each button assign a tone.
+int buttonTones_[ ] = { NOTE_A7, NOTE_B7, NOTE_C7, NOTE_D7, NOTE_E7, NOTE_F7
+    , NOTE_G7 };
+
+
 
 /**
  * @brief Input from button is stored here.
@@ -88,7 +101,7 @@ void setup()
     // initialize serial communication at 9600 bits per second:
     Serial.begin(19200);
 
-    pinMode( BUZZOR_PIN, OUTPUT );
+    pinMode( BUZZER_PIN, OUTPUT );
 
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
@@ -236,25 +249,16 @@ int maxInIArr( int* array, int arrayLen )
 }
 
 /**
- * @brief Play a tone for matched sequence i. Currently it plays by my
+ * @brief Play a tone for button buttonId. Currently it plays by my
  * modulating the pulse width.
  *
  * @param i
  */
-void playTone( size_t i )
+void playNote( int buttonId )
 {
-    int duration = 50 * 1000;                  /* In micro-seconds. */
-    int width = 1000;                           /* In micro-seconds. */
-    int onTime = 100 + 1 * 100;
-    for (size_t i = 0; i < 100; i++) 
-    {
-        digitalWrite( BUZZOR_PIN, HIGH );
-        delayMicroseconds( onTime );
-        digitalWrite( BUZZOR_PIN, LOW );
-        delayMicroseconds( width - onTime );
-        Serial.print( i );
-        Serial.print( ' ' );
-    }
+    Serial.print( "Freq : " );
+    Serial.print( buttonTones_[ buttonId ] );
+    tone( BUZZER_PIN, buttonTones_[buttonId], NOTE_DURATION );
 }
 
 void matchSequences( void )
@@ -358,7 +362,7 @@ void loop()
         num_of_buttons_pressed_ += 1;
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
-        playTone( buttonId );
+        playNote( buttonId );
         matchSequences();
 
         if( buttonId == RESET_BUTTON )
