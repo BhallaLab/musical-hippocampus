@@ -60,7 +60,7 @@ float running_mean_ = 0.0;
 int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 
 // This button reset the matching results. Everything starts from the begining.
-#define RESET_BUTTON 9
+#define RESET_BUTTON 7
 #define NOTE_DURATION 300
 
 
@@ -71,8 +71,9 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 #define BUZZER_PIN  9
 
 // For each button assign a tone.
-int buttonTones_[ ] = { NOTE_A7, NOTE_B7, NOTE_C7, NOTE_D7, NOTE_E7, NOTE_F7
-    , NOTE_G7 };
+int buttonTones_[ ] = { NOTE_C7, NOTE_D7, NOTE_E7, NOTE_F7 , NOTE_G7, NOTE_A7, NOTE_B7 
+    , NOTE_A2 // Last button is reset button.
+};
 
 
 
@@ -257,6 +258,8 @@ int maxInIArr( int* array, int arrayLen )
 void playNote( int buttonId )
 {
     Serial.print( "Freq : " );
+    Serial.print( buttonId );
+    Serial.print( " : " );
     Serial.print( buttonTones_[ buttonId ] );
     tone( BUZZER_PIN, buttonTones_[buttonId], NOTE_DURATION );
 }
