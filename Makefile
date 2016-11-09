@@ -6,19 +6,20 @@ PROJECT_DIR       = .
 
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
-ARDMK_DIR         = $(PROJECT_DIR)/makefiles
+ARDMK_DIR         = /usr/share/arduino
 
 ### ARDUINO_DIR
 ARDUINO_BIN       = $(shell which arduino)
 ifeq ($(UNAME_S),Darwin)
     ARDUINO_DIR       = /Applications/Arduino.app/Contents/Java
 else
-    ARDUINO_DIR       = $(dir $(shell readlink -f $(ARDUINO_BIN)))
+    ARDUINO_DIR       =  /usr/share/arduino
 endif
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
 BOARD_TAG         = mega2560
+MCU 		 =  atmega2560
 
 ### MONITOR_BAUDRATE
 ### It must be set to Serial baudrate value you are using.
@@ -26,11 +27,11 @@ MONITOR_BAUDRATE  = 19200
 
 ### CFLAGS_STD
 ### Set the C standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cflags_std)
-CFLAGS_STD        = -std=gnu11
+CFLAGS_STD        = -std=gnu11 
 
 ### CXXFLAGS_STD
 ### Set the C++ standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cxxflags_std)
-CXXFLAGS_STD      = -std=gnu++11
+CXXFLAGS_STD        = -std=gnu11 
 
 ### CXXFLAGS
 ### Flags you might want to set for debugging purpose. Comment to stop.
