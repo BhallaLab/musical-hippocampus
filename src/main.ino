@@ -23,23 +23,35 @@
 #define READ_DELAY     2
 
 #define WRITE_DELAY    10
-#define NUMBER_OF_SEQ   3
 #define MAX_SEQUENCE_LENGTH 10
 #define MIN_SEQUENCE_LENGTH 6
 
-#define SEQ1_LEN    6
-#define SEQ2_LEN    7
-#define SEQ3_LEN    11
+#define NUMBER_OF_SEQ   6
+#define SEQ1_LEN    11
+#define SEQ2_LEN    6
+#define SEQ3_LEN    7
+#define SEQ4_LEN    7 
+#define SEQ5_LEN    6
+#define SEQ6_LEN    6
+
+int wrongMatch_ = 0;
 
 // Length of sequences.
-int seq_length_[NUMBER_OF_SEQ] = { SEQ1_LEN, SEQ2_LEN, SEQ3_LEN };
+int seq_length_[NUMBER_OF_SEQ] = { 
+    SEQ1_LEN, SEQ2_LEN, SEQ3_LEN 
+        , SEQ4_LEN, SEQ5_LEN, SEQ6_LEN
+};
 
-int seq1[SEQ1_LEN] = { 0, 1, 2, 3, 4, 5 };
-int seq2[SEQ2_LEN] = { 0, 1, 0, 1, 2, 3, 1 };
-int seq3[SEQ3_LEN] = { 1, 1, 1, 0, 0, 0, 2, 2, 2, 3, 1 };
-int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3 };
+int seq1[SEQ1_LEN] = { 4, 4, 4, 4, 4, 4, 4, 6, 1, 3, 4 };
+int seq2[SEQ2_LEN] = { 1, 1, 3, 1, 5, 4 };
+int seq3[SEQ3_LEN] = { 5, 4, 3, 4, 3, 2, 3 };
+int seq4[SEQ4_LEN] = { 1, 1, 6, 6, 7, 7, 6 };
+int seq5[SEQ5_LEN] = { 4, 4, 4, 8, 7, 8 };
+int seq6[SEQ6_LEN] = { 4, 3, 1, 4, 3, 1};
 
-#define THRESHOLD_FOR_BUTTON_PRESS      100
+int* sequences_[6] = { seq1, seq2, seq3, seq4, seq5, seq6 };
+
+#define THRESHOLD_FOR_BUTTON_PRESS  10
 
 /**
  * @brief At each step it tracks which sequence is a poteintial match.
@@ -72,8 +84,9 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 #define BUZZER_PIN  9
 
 // For each button assign a tone.
-int buttonTones_[ ] = { NOTE_C7, NOTE_D7, NOTE_E7, NOTE_FS7 , NOTE_G7, NOTE_A7, NOTE_B7 
-    , NOTE_A2 // Last button is reset button.
+int buttonTones_[ ] = { 
+    NOTE_C7, NOTE_CS7, NOTE_D7, NOTE_E7, NOTE_FS7
+        , NOTE_G7, NOTE_A7, NOTE_B7, NOTE_A2 
 };
 
 
@@ -85,6 +98,23 @@ int input_[3];
 
 int num_of_buttons_pressed_ = 0;
 
+/**
+ * @brief Play a tone for button buttonId. Currently it plays by my
+ * modulating the pulse width.
+ *
+ * @param i
+ */
+void playNote( int buttonId, long duration = 0 )
+{
+    //Serial.print( "Playing button " );
+    //Serial.print( buttonId );
+    //Serial.print( " Freq : " );
+    //Serial.println( buttonTones_[ buttonId ] );
+    if( duration == 0 )
+        duration = NOTE_DURATION;
+    tone( BUZZER_PIN, buttonTones_[buttonId], duration );
+}
+
 void resetMatchingResult( )
 {
     Serial.println( "Reset sequence matching results" );
@@ -94,7 +124,7 @@ void resetMatchingResult( )
         matched_seq_[i] = 0.0;
         running_index_[i] = 0;
     }
-        
+    playNote( 0, 1000 );
 }
 
 // the setup routine runs once when you press reset:
@@ -122,28 +152,7 @@ void setup()
     strip.begin( );
     strip.show( );
 
-    //for (size_t i = 0; i < NUMBER_OF_STRIPS; i++) 
-    //{
-        //leds_[i].begin();
-        //leds_[i].show();
-    //}
-
 }
-
-#if 0
-/**
- * @brief Print the read input onto serial port. Does nothing else. 
- * Only for debugging purpose.
- */
-void printInput( )
-{
-    for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
-    {
-        Serial.print( input_[i] );
-        Serial.print( ' ' );
-    }
-}
-#endif
 
 /**
  * @brief This function reads the input from buttons and does nothing else.
@@ -232,7 +241,6 @@ void printIArray( int* array, size_t size)
     {
         Serial.print( array[i] );
         Serial.print( "," );
-        
     }
     Serial.println(" |");
 }
@@ -262,24 +270,6 @@ int maxInIArr( int* array, int arrayLen )
             maximum = array[i];
     return maximum;
 }
-
-/**
- * @brief Play a tone for button buttonId. Currently it plays by my
- * modulating the pulse width.
- *
- * @param i
- */
-void playNote( int buttonId, long duration = 0 )
-{
-    //Serial.print( "Playing button " );
-    //Serial.print( buttonId );
-    //Serial.print( " Freq : " );
-    //Serial.println( buttonTones_[ buttonId ] );
-    if( duration == 0 )
-        duration = NOTE_DURATION;
-    tone( BUZZER_PIN, buttonTones_[buttonId], duration );
-}
-
 void playSequece( int seqid )
 {
     // Play sequence with id seq
@@ -327,6 +317,12 @@ void matchSequences( void )
     if( noneMatch )
     {
         Serial.print('x');
+        wrongMatch_ += 1;
+        if( wrongMatch_ > 5 )
+        {
+            resetMatchingResult( );
+            wrongMatch_ = 0;
+        }
         int maxRunningIndex = maxInIArr( running_index_, NUMBER_OF_SEQ);
         if( n_button_press_ > 2 * MAX_SEQUENCE_LENGTH && 
                  maxInDArr( matched_seq_, NUMBER_OF_SEQ ) < MIN_SEQUENCE_LENGTH )
@@ -340,7 +336,7 @@ void matchSequences( void )
         for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
         {
             if( running_index_[i] >= seq_length_[i] &&
-                    matched_seq_[i] / running_index_[i] >= 0.8 )
+                    matched_seq_[i] / running_index_[i] >= 0.7 )
             {
                 // i'th sequence is matched.
                 Serial.print( "\n|| Sequence matched." );
