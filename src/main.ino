@@ -42,14 +42,27 @@ int seq_length_[NUMBER_OF_SEQ] = {
         , SEQ4_LEN, SEQ5_LEN, SEQ6_LEN
 };
 
-int seq1[SEQ1_LEN] = { 4, 4, 4, 4, 4, 4, 4, 6, 1, 3, 4 };
-int seq2[SEQ2_LEN] = { 1, 1, 3, 1, 5, 4 };
-int seq3[SEQ3_LEN] = { 5, 4, 3, 4, 3, 2, 3 };
-int seq4[SEQ4_LEN] = { 1, 1, 6, 6, 7, 7, 6 };
-int seq5[SEQ5_LEN] = { 4, 4, 4, 8, 7, 8 };
-int seq6[SEQ6_LEN] = { 4, 3, 1, 4, 3, 1};
+int seq1[SEQ1_LEN]   = { 3, 3, 3, 3, 3, 3, 3, 5, 0, 2, 3 };
+int delay1[SEQ1_LEN] = { 1, 1, 2, 1, 1, 2, 1, 3, 1, 1, 1 };
 
-int* sequences_[6] = { seq1, seq2, seq3, seq4, seq5, seq6 };
+int seq2[SEQ2_LEN]   = { 0, 0, 2, 0, 4, 3 };
+int delay2[SEQ2_LEN] = { 1, 1, 1, 1, 1, 1 };
+
+int seq3[SEQ3_LEN]   = { 4, 3, 2, 3, 2, 1, 2 };
+int delay3[SEQ3_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+
+int seq4[SEQ4_LEN]   = { 0, 0, 5, 5, 6, 6, 5 };
+int delay4[SEQ4_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+
+int seq5[SEQ5_LEN]   = { 3, 3, 3, 7, 6, 7 };
+int delay5[SEQ5_LEN] = { 1, 1, 1, 1, 1, 1 };
+
+int seq6[SEQ6_LEN]   = { 3, 2, 0, 3, 2, 0};
+int delay6[SEQ6_LEN] = { 1, 1, 2, 1, 1, 1};
+
+int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
+int* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4
+    , delay5, delay6 };
 
 #define THRESHOLD_FOR_BUTTON_PRESS  10
 
@@ -85,8 +98,8 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 
 // For each button assign a tone.
 int buttonTones_[ ] = { 
-    NOTE_C7, NOTE_CS7, NOTE_D7, NOTE_E7, NOTE_FS7
-        , NOTE_G7, NOTE_A7, NOTE_B7, NOTE_A2 
+    NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5
+        , NOTE_G5, NOTE_A5, NOTE_B5
 };
 
 
@@ -115,7 +128,7 @@ void playNote( int buttonId, long duration = 0 )
     tone( BUZZER_PIN, buttonTones_[buttonId], duration );
 }
 
-void resetMatchingResult( )
+void resetMatchingResult( bool silent = true )
 {
     Serial.println( "Reset sequence matching results" );
     n_button_press_ = 0;
@@ -124,7 +137,9 @@ void resetMatchingResult( )
         matched_seq_[i] = 0.0;
         running_index_[i] = 0;
     }
-    playNote( 0, 1000 );
+
+    if( ! silent )
+        playNote( NOTE_A1, 1000 );
 }
 
 // the setup routine runs once when you press reset:
@@ -270,18 +285,22 @@ int maxInIArr( int* array, int arrayLen )
             maximum = array[i];
     return maximum;
 }
+
 void playSequece( int seqid )
 {
     // Play sequence with id seq
     int* seq = sequences_[ seqid ];
     int seqLength = seq_length_[ seqid ];
+
+    int duration = 300;
+
+    delay( 1000 );
     for (size_t i = 0; i < seqLength; i++) 
     {
-        noTone( seq[i] );
-        playNote( seq[i], 500 );
-        delay( 500 );
+        playNote( seq[i], duration );
+        delay( delays_[seqid][i] * duration );
     }
-    noTone( seq[ seqLength - 1] );
+    delay( 1000 );
 }
 
 void matchSequences( void )
@@ -320,7 +339,7 @@ void matchSequences( void )
         wrongMatch_ += 1;
         if( wrongMatch_ > 5 )
         {
-            resetMatchingResult( );
+            resetMatchingResult( false );
             wrongMatch_ = 0;
         }
         int maxRunningIndex = maxInIArr( running_index_, NUMBER_OF_SEQ);
@@ -328,7 +347,7 @@ void matchSequences( void )
                  maxInDArr( matched_seq_, NUMBER_OF_SEQ ) < MIN_SEQUENCE_LENGTH )
         {
             Serial.println( "Ha ha! It's better to restart now");
-            resetMatchingResult( );
+            resetMatchingResult( false );
         }
     }
     else
@@ -343,7 +362,7 @@ void matchSequences( void )
                 Serial.println( i );
                 playSequece( i );
                 // Reset everything
-                resetMatchingResult( );
+                resetMatchingResult( true );
                 break;
             }
         }
@@ -374,8 +393,6 @@ void test( void )
             addInput( buttonId );
             matchSequences();
         }
-        else if( buttonId == 9 )
-            resetMatchingResult( );
 
     }
 }
@@ -395,9 +412,6 @@ void loop()
         playNote( buttonId );
         lightupLED( buttonId );
         matchSequences();
-
-        if( buttonId == RESET_BUTTON )
-            resetMatchingResult( );
     }
 
     // Send a simple pixel chase in...
