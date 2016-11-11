@@ -64,7 +64,7 @@ int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
 double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4
     , delay5, delay6 };
 
-#define THRESHOLD_FOR_BUTTON_PRESS  10
+#define THRESHOLD_FOR_BUTTON_PRESS  50
 
 /**
  * @brief At each step it tracks which sequence is a poteintial match.
@@ -139,6 +139,8 @@ void resetMatchingResult( bool silent )
         Serial.println( "Playing reset tone" );
         playNote( 8, 1000 );
     }
+
+    resetAllLEDs( );
 }
 
 // the setup routine runs once when you press reset:
@@ -168,6 +170,21 @@ void setup()
 
     progressBarLed.begin( );
     progressBarLed.show( );
+
+    ca1LED.begin( );
+    ca1LED.show( );
+
+    axon0.begin();
+    axon0.show( );
+
+    axon1.begin();
+    axon1.show( );
+
+    axon2.begin();
+    axon2.show( );
+
+    axon3.begin();
+    axon3.show( );
 
 }
 
@@ -318,13 +335,18 @@ void matchSequences( void )
     {
         if( currVal == sequences_[i][running_index_[i]] )
         {
-            running_index_[i] += 1;
             matched_seq_[i] += 1.0;
+            running_index_[i] += 1;
             noneMatch = false;
         }
         else
+        {
             // when there is no match, decay every element to x% of its value.
-            matched_seq_[i] *= 0.9;
+            running_index_[i] += 1;
+            matched_seq_[i] -= (1.0 / (1 + matched_seq_[i]));
+            if( matched_seq_[i ] < 0 )
+                matched_seq_[i] = 0.0;
+        }
     }
 
     // Use this array to create an led progres bar.
@@ -408,6 +430,7 @@ void loop()
     int buttonId = whichButtonIsPressed( );
     if( buttonId >= 0 )
     {
+        lighupAxon( buttonId );
         //Serial.print( "Button pressed : " );
         //Serial.println( buttonId );
         //Serial.println( num_of_buttons_pressed_ );
