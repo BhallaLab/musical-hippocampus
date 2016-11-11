@@ -43,25 +43,25 @@ int seq_length_[NUMBER_OF_SEQ] = {
 };
 
 int seq1[SEQ1_LEN]   = { 3, 3, 3, 3, 3, 3, 3, 5, 0, 2, 3 };
-int delay1[SEQ1_LEN] = { 1, 1, 2, 1, 1, 2, 1, 3, 1, 1, 1 };
+double delay1[SEQ1_LEN] = { 1, 1, 2, 1, 1, 2, 1, 3, 1, 1, 1 };
 
 int seq2[SEQ2_LEN]   = { 0, 0, 2, 0, 4, 3 };
-int delay2[SEQ2_LEN] = { 1, 1, 1, 1, 1, 1 };
+double delay2[SEQ2_LEN] = { 1, 1, 1, 1, 1, 1 };
 
-int seq3[SEQ3_LEN]   = { 4, 3, 2, 3, 2, 1, 2 };
-int delay3[SEQ3_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+int seq3[SEQ3_LEN]   = { 4, 3, 2, 3, 1, 2, 2 };
+double delay3[SEQ3_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
 
 int seq4[SEQ4_LEN]   = { 0, 0, 5, 5, 6, 6, 5 };
-int delay4[SEQ4_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+double delay4[SEQ4_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
 
 int seq5[SEQ5_LEN]   = { 3, 3, 3, 7, 6, 7 };
-int delay5[SEQ5_LEN] = { 1, 1, 1, 1, 1, 1 };
+double delay5[SEQ5_LEN] = { 1, 1, 1, 1, 1, 1 };
 
 int seq6[SEQ6_LEN]   = { 3, 2, 0, 3, 2, 0};
-int delay6[SEQ6_LEN] = { 1, 1, 2, 1, 1, 1};
+double delay6[SEQ6_LEN] = { 1, 1, 2, 1, 1, 1};
 
 int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
-int* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4
+double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4
     , delay5, delay6 };
 
 #define THRESHOLD_FOR_BUTTON_PRESS  10
@@ -99,7 +99,7 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 // For each button assign a tone.
 int buttonTones_[ ] = { 
     NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5
-        , NOTE_G5, NOTE_A5, NOTE_B5
+        , NOTE_G5, NOTE_A5, NOTE_B5, NOTE_A1
 };
 
 
@@ -119,16 +119,12 @@ int num_of_buttons_pressed_ = 0;
  */
 void playNote( int buttonId, long duration = 0 )
 {
-    //Serial.print( "Playing button " );
-    //Serial.print( buttonId );
-    //Serial.print( " Freq : " );
-    //Serial.println( buttonTones_[ buttonId ] );
     if( duration == 0 )
         duration = NOTE_DURATION;
     tone( BUZZER_PIN, buttonTones_[buttonId], duration );
 }
 
-void resetMatchingResult( bool silent = true )
+void resetMatchingResult( bool silent )
 {
     Serial.println( "Reset sequence matching results" );
     n_button_press_ = 0;
@@ -139,7 +135,10 @@ void resetMatchingResult( bool silent = true )
     }
 
     if( ! silent )
-        playNote( NOTE_A1, 1000 );
+    {
+        Serial.println( "Playing reset tone" );
+        playNote( 8, 1000 );
+    }
 }
 
 // the setup routine runs once when you press reset:
@@ -166,6 +165,9 @@ void setup()
      *-----------------------------------------------------------------------------*/
     strip.begin( );
     strip.show( );
+
+    progressBarLed.begin( );
+    progressBarLed.show( );
 
 }
 
@@ -325,6 +327,9 @@ void matchSequences( void )
             matched_seq_[i] *= 0.9;
     }
 
+    // Use this array to create an led progres bar.
+    progressBar( matched_seq_, NUMBER_OF_SEQ );
+
     /**
      * @param noneMatch
      *
@@ -410,7 +415,6 @@ void loop()
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
         playNote( buttonId );
-        lightupLED( buttonId );
         matchSequences();
     }
 
