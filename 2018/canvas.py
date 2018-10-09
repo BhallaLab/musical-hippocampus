@@ -35,8 +35,8 @@ note_loc_          = { }
 def int2Clr( x ):
     b = int(x)
     left = 255 - b
-    r = max(10, left//2)
-    g = max(5, left//2)
+    r = max(20, left//2)
+    g = max(20, left//2)
     b = 255 - r - g
     return (r, g, b)
 
@@ -147,7 +147,6 @@ def plot_png_using_cv2(G):
         cv2.line( arena.canvas_, (x1,y1), (x2, y2)
                 , int2Clr(G.node[n2]['color'])
                 , G[n1][n2].get('width', 1)
-                , 4
                 )
 
 def plot_graphs( ):
@@ -170,7 +169,7 @@ def update(g):
         c = g.node[n]['color']
         if c == 0:
             break
-        g.node[n]['color'] = c * 0.9
+        g.node[n]['color'] = c * 0.95
         for p in g.successors(n):
             g.node[p]['color'] = g.node[n]['color']
             nexts.append(p)
@@ -185,7 +184,7 @@ def inject_ap(g):
 def create_canvas( ):
     add_piano( )
     for i, (pos, theta, k) in enumerate(config.ca1_):
-        g = swc.swc2nx(k, scale=0.01 )
+        g = swc.swc2nx(k, scale=0.1 )
         print( g.number_of_nodes() )
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
@@ -195,7 +194,7 @@ def create_canvas( ):
         nrns_['ca1.%d'%i] = g
 
     for i, (pos, theta, k) in enumerate(config.ca3_):
-        g = swc.swc2nx(k, scale=0.01)
+        g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
         swc.add_axon(i, g, scPath)
