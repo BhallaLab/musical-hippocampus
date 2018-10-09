@@ -156,9 +156,7 @@ def plot_graphs( nrns ):
     global hippoImg_
     #  nrns = sorted(nrns, key=lambda g: g.node[1]['color'])
     for g in nrns:
-        print( g.node[1]['color'], end = ' ' )
         plot_png_using_cv2(g)
-    print()
 
 
 def update(g):
