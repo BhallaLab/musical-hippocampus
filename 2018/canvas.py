@@ -51,7 +51,7 @@ def add_piano( pressed = 0 ):
         p1, p2 = (i*stripeW, h-stripeH), ((i+1)*stripeW, h-1)
         p0 = (i*stripeW+stripeW//2, h-stripeH//2)
         img = np.ascontiguousarray(arena.canvas_, dtype=np.uint8)
-        cv2.rectangle( img, p1, p2, int2Clr(color), cv2.FILLED)
+        cv2.rectangle( img, p1, p2, int2Clr(color), -1)
         cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1,
                 int2Clr(128), 2)
         note_loc_[i+1] = (p0,p1,p2)
@@ -63,14 +63,6 @@ def change_color( img, ps ):
     p0, p1, p2 = ps
     #  cv2.rectangle( img, p1, p2, int2Clr(color), cv2.FILLED)
     cv2.circle( img, p0, 20, int2Clr(80), 2, -1 )
-
-def smooth_line(ps):
-    ps = np.array(ps)
-    X, Y = ps[:,0], ps[:,1]
-    fs = sci.splrep(X, Y)
-    x = np.linspace(min(X), max(X), 20)
-    y = sci.splev(x, fs)
-    return zip(map(int,x),map(int, y))
 
 def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     if os.path.isfile( 'sc.txt' ):
@@ -193,7 +185,8 @@ def inject_ap(g):
 def create_canvas( ):
     add_piano( )
     for i, (pos, theta, k) in enumerate(config.ca1_):
-        g = swc.swc2nx(k, scale=0.3)
+        g = swc.swc2nx(k, scale=0.01 )
+        print( g.number_of_nodes() )
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
         g.graph['SeqRec'] = sequence.SeqRecognizer([])
@@ -202,7 +195,7 @@ def create_canvas( ):
         nrns_['ca1.%d'%i] = g
 
     for i, (pos, theta, k) in enumerate(config.ca3_):
-        g = swc.swc2nx(k, scale=0.1)
+        g = swc.swc2nx(k, scale=0.01)
         preprocess( g, rotate=theta, shift=pos )
         scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
         swc.add_axon(i, g, scPath)
@@ -272,14 +265,14 @@ def reset_all( delay = 1 ):
     global current_num_press_
     # remove all events from pygame.
     print( 'RESETTING' )
-    pygame.event.clear()
+    #pygame.event.clear()
     for k in ca1nrnsNames_:
         g = nrns_[k]
         g.graph['SeqRec'].reset()
     reset_all_ = False
     current_num_press_ = 0
     time.sleep( delay )
-    pygame.event.clear()
+    #pygame.event.clear()
 
 def main():
     nrns = init()
