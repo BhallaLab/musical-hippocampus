@@ -11,7 +11,6 @@ __status__           = "Development"
 import sys
 import os
 import numpy as np
-import pygame
 import networkx as nx
 import operator
 import math
@@ -156,11 +155,16 @@ def plot_graphs( nrns ):
     global hippoImg_
     #  nrns = sorted(nrns, key=lambda g: g.node[1]['color'])
     for g in nrns:
-        plot_png_using_cv2(g)
+        if g.graph['active']:
+            plot_png_using_cv2(g)
 
 
 def update(g):
     aps = g.graph['AP']
+    if len(aps)==0:
+        g.graph['active'] = False
+    if not g.graph['active']:
+        return 
     nexts = []
     for n in aps:
         c = g.node[n]['color']
@@ -175,6 +179,7 @@ def update(g):
 
 def inject_ap(g):
     g.graph['AP'] = [1]
+    g.graph['active'] = True
     for n in g.nodes():
         g.node[n]['color'] = 0
     g.node[1]['color'] = 255
@@ -260,29 +265,29 @@ def inject_alphabet_ca3(x, g = None):
 def reset_all( delay = 1 ):
     global reset_all_
     global current_num_press_
-    # remove all events from pygame.
     print( 'RESETTING' )
-    #pygame.event.clear()
     for k in ca1nrnsNames_:
         g = nrns_[k]
         g.graph['SeqRec'].reset()
     reset_all_ = False
     current_num_press_ = 0
     time.sleep( delay )
-    #pygame.event.clear()
 
 def main():
-    nrns = init()
-    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
-    ca3nrnsNames = list( ca3nrns.keys() )
+    global nrns_
+    init()
+    ca3nrns = { k : v for k, v in nrns_.items() if 'ca3' in k }
     for i in range(1000):
-        [update(g, i) for g in nrns.values()]
-        plot_graphs(nrns.values())
-        if i % 20 == 0:
-            gn = random.choice(ca3nrnsNames)
-            g = nrns[gn]
-            x = random.choice( alphabets_ )
-            g['SN'].apply(x)
+        [update(g) for g in nrns_.values()]
+        plot_graphs(nrns_.values())
+        if i % 10 == 0:
+            gn = random.choice(ca3nrnsNames_)
+            g = nrns_[gn]
+            x = random.choice( config.alphabets_ )
+            inject_alphabet_ca3( x )
+        
+        cv2.imshow( 'test', arena.canvas_ )
+        cv2.waitKey(1)
 
 if __name__ == '__main__':
     main()
