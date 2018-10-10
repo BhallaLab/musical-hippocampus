@@ -15,9 +15,15 @@ import sound
 
 black_ = 0, 0, 0
 
+# If no activity is detected for timeout_ second, starts random activity.
+timeout_ = 10.0
+timeWithoutActivity_ = 0
+
 # OpenCV highgui
 def on_mouse(event, x, y, flag, params ):
+    global timeWithoutActivity_
     if event == 1:
+        timeWithoutActivity_ = 0
         W = arena.canvas_.shape[1] / len(sound.notes)
         note = int(x / W) + 1
         if y > 400:
@@ -28,6 +34,7 @@ def on_mouse(event, x, y, flag, params ):
 cv2.setMouseCallback( canvas.winName_, on_mouse )
 
 def runApp():
+    global timeWithoutActivity_, timeout_
     canvas.init()
     t = 0
     for i in itertools.count():
@@ -37,12 +44,14 @@ def runApp():
         k = 0.85
         img = k*arena.canvas_ + (1-k)*config.refFig_
         canvas.show_frame(np.uint8(img))
-        t += time.time() - t0
+        dt = time.time() - t0
+        t += dt
+        timeWithoutActivity_ += dt
         if i % 10 == 0:
             print( "[INFO ] Current FPS %.2f" % (i/t) )
         
         # if auto is enabled then inject random stimulus.
-        if config.args_.auto:
+        if config.args_.auto and timeWithoutActivity_ > timeout_:
             canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
             continue
 
