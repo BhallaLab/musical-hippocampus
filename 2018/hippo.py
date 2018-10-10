@@ -31,15 +31,17 @@ cv2.setMouseCallback( canvas.winName_, on_mouse )
 
 def runApp():
     canvas.init()
+    t = 0
     for i in itertools.count():
+        t0 = time.time()
         canvas.update_canvas( )
         k = 0.85
         img = k*arena.canvas_ + (1-k)*config.refFig_
         canvas.show_frame(np.uint8(img))
-
-        if (i+1) % 5 != 0:
-          continue
-
+        t += time.time() - t0
+        if i % 10 == 0:
+            print( "[INFO ] Current FPS %.2f" % (i/t) )
+        
         # if auto is enabled then inject random stimulus.
         if config.args_.auto:
             canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
