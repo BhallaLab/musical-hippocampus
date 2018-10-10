@@ -25,16 +25,15 @@ def on_mouse(event, x, y, flag, params ):
             if note == 8:
                 canvas.reset_all()
 
-
 cv2.setMouseCallback( canvas.winName_, on_mouse )
-
 
 def runApp():
     canvas.init()
     t = 0
     for i in itertools.count():
         t0 = time.time()
-        canvas.update_canvas( )
+        if i % 2 == 0:
+            canvas.update_canvas( )
         k = 0.85
         img = k*arena.canvas_ + (1-k)*config.refFig_
         canvas.show_frame(np.uint8(img))
@@ -46,21 +45,6 @@ def runApp():
         if config.args_.auto:
             canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
             continue
-
-        ## handle event
-        #for event in pygame.event.get():
-        #    if event.type == pygame.QUIT:
-        #        quit()
-
-        #    if event.type != 2:
-        #        continue
-
-        #    k = chr(event.key)
-        #    if '0' < k < '8':
-        #        canvas.inject_alphabet_ca3(int(k))
-        #    if k in [ 'r', 'q' ]:
-        #        canvas.reset_all()
-
 
 def main( args ):
     config.args_ = args

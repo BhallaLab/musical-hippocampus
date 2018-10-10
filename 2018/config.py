@@ -12,10 +12,15 @@ __status__           = "Development"
 import sys
 import os
 import cv2
+import numpy as np
+import arena
 
 args_ = None
 
-refFig_ = cv2.imread('./hippocampus-800x480.png', 1)
+refFig_ = cv2.resize( cv2.imread('./hippocampus-800x480.png', 1)
+            ,(arena.w_, arena.h_)
+            )
+
 alphabets_ = [1,2,3,4,5,6,7]
 ca1_ = [ 
         ((377, 129), 210, './swcs/cell1-11b-CA1.CNG.swc'),

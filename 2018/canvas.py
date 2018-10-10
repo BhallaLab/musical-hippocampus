@@ -146,14 +146,16 @@ def _translate_graph(g, p):
     for n in g.nodes():
         g.node[n]['coordinate'] = _sub(g.node[n]['coordinate'], (-x,-y))
 
-def plot_png_using_cv2(G):
+def plot_png_using_cv2(G, every = 1):
     global win_
     global title_
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
     somaColor = int2Clr(G.graph['SeqRec']._output*128  + 0.5*G.node[1]['color'])
     cv2.circle( arena.canvas_, pos[1], 5, somaColor, -1 )
-    for n1, n2 in G.edges():
+    for i, (n1, n2) in enumerate(G.edges()):
+        if i % every != 0:
+            continue
         (x1, y1), (x2, y2) = pos[n1], pos[n2]
         cv2.line( arena.canvas_, (x1,y1), (x2, y2)
                 , int2Clr(G.node[n2]['color'])
@@ -168,11 +170,11 @@ def plot_png_using_cv2(G):
     cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+120), -1)
     cv2.putText(arena.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
-def plot_graphs( nrns ):
+def plot_graphs( nrns, every = 1 ):
     global hippoImg_
     for g in nrns:
         if g.graph['active']:
-            plot_png_using_cv2(g)
+            plot_png_using_cv2(g, every)
 
 
 def update(g):
@@ -225,7 +227,7 @@ def create_canvas( ):
 def update_canvas( ):
     global nrns_
     [update(g) for g in nrns_.values()]
-    plot_graphs( nrns_.values() )
+    plot_graphs( nrns_.values(), 2 )
 
 def init():
     global ca3nrnsNames_
