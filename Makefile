@@ -6,20 +6,15 @@ PROJECT_DIR       = .
 
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
-ARDMK_DIR         = /usr/share/arduino
+ARDMK_DIR         = ./makefiles/
 
 ### ARDUINO_DIR
 ARDUINO_BIN       = $(shell which arduino)
-ifeq ($(UNAME_S),Darwin)
-    ARDUINO_DIR       = /Applications/Arduino.app/Contents/Java
-else
-    ARDUINO_DIR       =  /usr/share/arduino
-endif
+ARDUINO_DIR       =  /usr/share/arduino
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
-BOARD_TAG         = mega2560
-MCU 		 =  atmega2560
+MCU 		 =  atmega328p
 
 ### MONITOR_BAUDRATE
 ### It must be set to Serial baudrate value you are using.
@@ -45,17 +40,13 @@ MONITOR_PORT      = $(shell python $(PROJECT_DIR)/config/get_serial_ports.py)
 ### Do not touch - used for binaries path
 CURRENT_DIR       = $(shell basename $(CURDIR))
 
-#ARDUINO_LIBS 	  = LiquidCrystal
-
 ### OBJDIR
 ### This is where you put the binaries you just compile using 'make'
 OBJDIR            = $(PROJECT_DIR)/bin/$(BOARD_TAG)/$(CURRENT_DIR)
 
 ## INO file and other cpp files
 LOCAL_INO_SRCS     = $(PROJECT_DIR)/src/main.ino
-LOCAL_CPP_SRCS     = $(PROJECT_DIR)/src/globals.cpp  \
-		     $(PROJECT_DIR)/src/LPD8806/LPD8806.cpp 
+LOCAL_CPP_SRCS     = $(PROJECT_DIR)/src/LPD8806/LPD8806.cpp 
 
 ### Do not touch - the path to Arduino.mk, inside the ARDMK_DIR
 include $(ARDMK_DIR)/Arduino.mk
-
