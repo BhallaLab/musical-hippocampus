@@ -12,9 +12,7 @@ import itertools
 import time
 import config
 
-#pygame.init()
 black_ = 0, 0, 0
-#screen_ = pygame.display.set_mode(arena.size)
 
 # OpenCV highgui
 def on_mouse(event, x, y, flag, params ):

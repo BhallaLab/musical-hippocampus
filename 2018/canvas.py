@@ -31,7 +31,13 @@ current_num_press_ = 0
 reset_all_         = False
 note_loc_          = { }
 winName_           = "HIPPOCAMPUS"
+
 win_               = cv2.namedWindow( winName_ )
+try:
+    cv2.setWindowProperty(winName_, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+except Exception as e:
+    # Older version
+    cv2.setWindowProperty(winName_, cv2.WND_PROP_FULLSCREEN, cv2.cv.CV_WINDOW_FULLSCREEN)
 
 def int2Clr( x ):
     import matplotlib.cm as cm
@@ -151,6 +157,12 @@ def plot_png_using_cv2(G):
                 , int2Clr(G.node[n2]['color'])
                 , G[n1][n2].get('width', 1)
                 )
+
+    # write the current number and max numbers.
+    txt =  '%d/%d' % (current_num_press_, max_num_press_)
+    p0 = (10,10)
+    cv2.rectangle(arena.canvas_, (0,0), (50,20), int2Clr(256), -1)
+    cv2.putText(arena.canvas_, txt, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(128), 1)
 
 def plot_graphs( nrns ):
     global hippoImg_
