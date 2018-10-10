@@ -51,9 +51,8 @@ def runApp():
             print( "[INFO ] Current FPS %.2f" % (i/t) )
         
         # if auto is enabled then inject random stimulus.
-        if config.args_.auto and timeWithoutActivity_ > timeout_:
+        if timeWithoutActivity_ > timeout_:
             canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
-            continue
 
 def main( args ):
     config.args_ = args
@@ -64,10 +63,6 @@ if __name__ == '__main__':
     # Argument parser.
     description = '''Hippocampus.'''
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--auto', '-a'
-        , required = False, default = False, action = 'store_true'
-        , help = 'Run automatically.'
-        )
     class Args: pass 
     args = Args()
     parser.parse_args(namespace=args)
