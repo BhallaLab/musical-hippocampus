@@ -20,17 +20,13 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <ctime>
 
 #include <opencv2/opencv.hpp>
+#include "config.hpp"
 
 using namespace std;
 using namespace cv;
-
-string winName_ = "Hippo";
-
-size_t w_ = 800;
-size_t h_ = 480;
-
 
 Mat img_ = Mat::zeros(w_, h_, CV_8UC1);
 
@@ -49,12 +45,21 @@ void random_color( Mat& image )
 
 int main( int argc, char** argv)
 {
-    namedWindow( winName_, 0 );
+    namedWindow( WINNAME, 0 );
+    double t=0;
+    time_t t0;
+
+    size_t nFrames = 0;
     while(true)
     {
+        nFrames += 1;
+        t0 = time(0);
         random_color( img_ );
-        imshow( winName_, img_ );
-        waitKey(1);
+        //imshow( WINNAME, img_ );
+        //waitKey(1);
+        t += (time(0) - t0);
+        if( nFrames % 20 == 0 )
+            cout << "Current frame rate : " << (double) nFrames / t << endl;
     }
     destroyAllWindows();
 }
