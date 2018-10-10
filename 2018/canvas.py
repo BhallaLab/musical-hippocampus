@@ -166,8 +166,8 @@ def plot_png_using_cv2(G, every = 1):
     txt =  '%d/%d' % (current_num_press_, max_num_press_)
     title = '%s: %s' % (txt, title_)
     p0 = (10,10)
-    c = 100*(current_num_press_ / max_num_press_ )
-    cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+120), -1)
+    c = 50*(current_num_press_ / max_num_press_ )
+    cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+230), -1)
     cv2.putText(arena.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
 def plot_graphs( nrns, every = 1 ):
@@ -227,7 +227,7 @@ def create_canvas( ):
 def update_canvas( ):
     global nrns_
     [update(g) for g in nrns_.values()]
-    plot_graphs( nrns_.values(), 2 )
+    plot_graphs( nrns_.values(), 1 )
 
 def init():
     global ca3nrnsNames_
