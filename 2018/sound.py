@@ -1,6 +1,6 @@
 """sound.py: 
-
 """
+from __future__ import print_function, division
     
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"

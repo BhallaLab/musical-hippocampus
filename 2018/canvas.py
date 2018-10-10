@@ -31,6 +31,7 @@ current_num_press_ = 0
 reset_all_         = False
 note_loc_          = { }
 winName_           = "HIPPOCAMPUS"
+title_             = ''
 
 win_               = cv2.namedWindow( winName_ )
 try:
@@ -54,7 +55,7 @@ def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
     global note_loc_
     h, w, _ = arena.canvas_.shape 
-    stripeW = math.floor(w/len(sound.notes))
+    stripeW = int(w/len(sound.notes))
     stripeH = 80
     for i in range(w//stripeW):
         color =  255 if i % 2 else 0
@@ -147,6 +148,7 @@ def _translate_graph(g, p):
 
 def plot_png_using_cv2(G):
     global win_
+    global title_
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
     somaColor = int2Clr(G.graph['SeqRec']._output*128  + 0.5*G.node[1]['color'])
@@ -160,10 +162,11 @@ def plot_png_using_cv2(G):
 
     # write the current number and max numbers.
     txt =  '%d/%d' % (current_num_press_, max_num_press_)
+    title = '%s: %s' % (txt, title_)
     p0 = (10,10)
     c = 100*(current_num_press_ / max_num_press_ )
     cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+120), -1)
-    cv2.putText(arena.canvas_, txt, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
+    cv2.putText(arena.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
 def plot_graphs( nrns ):
     global hippoImg_
@@ -250,6 +253,7 @@ def inject_alphabet_ca3(x, g = None):
     global reset_all_
     global max_num_press_
     global current_num_press_
+    global title_
     current_num_press_ += 1
 
     if g is None:
@@ -258,14 +262,17 @@ def inject_alphabet_ca3(x, g = None):
     sound.play_int(x)
     add_piano(x)
 
-    # same alphabets gets injected into ca1
+    # same alphabets gets injected into ca1. Print the status of their output.
+    title_ = ''
     for k in ca1nrnsNames_:
         g = nrns_[k]
         inject_alphabet(x, g)
         #  print( '\t%s' % k, g.graph['SeqRec'] )
+        title_ += '%.2f|' % g.graph['SeqRec']._output
         if g.graph['SeqRec'].output == 1:
             inject_ap(g)
-            playback_background( g )
+            #playback_background( g )
+            playback(g)
             g.graph['SeqRec'].reset()
             reset_all_ = True
 
@@ -279,6 +286,7 @@ def inject_alphabet_ca3(x, g = None):
 def reset_all( delay = 1 ):
     global reset_all_
     global current_num_press_
+    global title_
     print( 'RESETTING' )
     for k in ca1nrnsNames_:
         g = nrns_[k]
