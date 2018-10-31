@@ -370,9 +370,6 @@ class Piano(Frame):
         play_button.bind('<Button-1>', play_back)
         play_button.bind('<ButtonRelease-1>', label_released)
 
-        # This titles the window.
-        self.parent.title('The Piano')
-
         # This group of lines centers the window on the screen
         # and specifies the size of the window.
         w = 750
@@ -381,7 +378,7 @@ class Piano(Frame):
         sh = self.parent.winfo_screenheight()
         x = (sw - w) / 2
         y = (sh - h) / 2
-        self.parent.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        self.parent.config(width=x, height=h)
 
         # This group of lines saves a reference to keys so that
         # it does not go out of scope and binds the presses and

@@ -8,18 +8,25 @@ except ImportError as e:
 
 from piano import *
 
+h_, w_ = 500, 800
+
 class Hippocampus():
 
     def __init__(self, parent, controller = None):
         self.parent = parent
-        canvas = tk.Canvas()
-        piano = Piano(parent)
-        canvas.pack()
-        piano.pack()
+        self.canvas = tk.Canvas()
+        self.piano = Piano( parent )
+        self.canvas.pack( side=tk.TOP )
+        self.piano.pack(side=tk.BOTTOM)
+
+    def update(self):
+        print( '.', end = '' )
 
 
 def main():
     root = tk.Tk()
+    root.title = 'Hippocampus'
+    root.geometry( "%sx%s" % (w_,h_))
     app = Hippocampus(root)
     root.mainloop()
 
