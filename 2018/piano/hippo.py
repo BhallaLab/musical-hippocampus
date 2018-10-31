@@ -2,9 +2,9 @@
 #  This is a modified version of https://github.com/JesseKuntz/my-piano
 
 try:
-    from Tkinter import Tk, Frame, BOTH, Label, PhotoImage
-except ImportError:
-    from tkinter import Tk, Frame, BOTH, Label, PhotoImage
+    import Tkinter as tk
+except ImportError as e:
+    import tkinter as tk
 
 from piano import *
 
@@ -12,12 +12,14 @@ class Hippocampus():
 
     def __init__(self, parent, controller = None):
         self.parent = parent
+        canvas = tk.Canvas()
         piano = Piano(parent)
+        canvas.pack()
         piano.pack()
 
 
 def main():
-    root = Tk()
+    root = tk.Tk()
     app = Hippocampus(root)
     root.mainloop()
 
