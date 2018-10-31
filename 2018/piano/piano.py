@@ -1,40 +1,28 @@
-#!/usr/bin/python
-
-##########################################################
-# Piano.py, when run, creates a window that simulates a  #
-# two-octave piano. This program was originally created  #
-# for the final project of CS 214 at Calvin College.     #
-#                                                        #
-# Created by: Jesse Kuntz                                #
-# Date of Presentation: 05/12/16                         #
-##########################################################
-
-# Import the package that allows me to manipulate windows and
-# graphics. 'Tkinter' is for Python 2, while 'tkinter' is for
-# Python 3. This allows for it to be run on either version.
-try:
-    from Tkinter import Tk, Frame, BOTH, Label, PhotoImage
-except ImportError:
-    from tkinter import Tk, Frame, BOTH, Label, PhotoImage
-# Import the package that allows me to play sounds.
+# -*- coding: utf-8 -*-
+import os
+import sys
 import simpleaudio as sa
-# Import the package that allows me to keep track of time.
 import time as t
-# Import the package that allows me to concurrently run operations.
 from _thread import start_new_thread
 import os
 
+recording = False
 start = t.time()
-
 # This file directory
 sdir_ = os.path.dirname( __file__ )
-
 # These two lines wipe the file.
 file = open( os.path.join(sdir_, 'songs/song.txt'), 'w')
 file.close()
 
-recording = False
+try:
+    from Tkinter import Tk, Frame, BOTH, Label, PhotoImage
+except ImportError:
+    from tkinter import Tk, Frame, BOTH, Label, PhotoImage
 
+try:
+    from Tkinter import Tk, Frame, BOTH, Label, PhotoImage
+except ImportError:
+    from tkinter import Tk, Frame, BOTH, Label, PhotoImage
 
 ##########################################################
 # Description: label_pressed is a method that will       #
@@ -432,12 +420,3 @@ class Piano(Frame):
         return label
 
 
-# The main method creates an instance of the Piano class
-# and keeps it running until termination.
-def main():
-    root = Tk()
-    app = Piano(root)
-    app.mainloop()
-
-if __name__ == '__main__':
-    main()
