@@ -1,4 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+
 #  This is a modified version of https://github.com/JesseKuntz/my-piano
 
 try:
