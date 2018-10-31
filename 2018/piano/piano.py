@@ -22,11 +22,15 @@ import simpleaudio as sa
 import time as t
 # Import the package that allows me to concurrently run operations.
 from _thread import start_new_thread
+import os
 
 start = t.time()
 
+# This file directory
+sdir_ = os.path.dirname( __file__ )
+
 # These two lines wipe the file.
-file = open('songs/song.txt', 'w')
+file = open( os.path.join(sdir_, 'songs/song.txt'), 'w')
 file.close()
 
 recording = False
@@ -50,7 +54,7 @@ def label_pressed(event):
         img = 'pictures/red_button_pressed.gif'
     else:
         img = 'pictures/green_button_pressed.gif'
-    key_img = PhotoImage(file=img)
+    key_img = PhotoImage(file=os.path.join(sdir_,img))
     event.widget.configure(image=key_img)
     event.widget.image = key_img
 
@@ -73,7 +77,7 @@ def label_released(event):
         img = 'pictures/red_button.gif'
     else:
         img = 'pictures/green_button.gif'
-    key_img = PhotoImage(file=img)
+    key_img = PhotoImage(file=os.path.join(sdir_,img))
     event.widget.configure(image=key_img)
     event.widget.image = key_img
 
@@ -204,7 +208,7 @@ def key_pressed(event):
             img = 'pictures/white_key_pressed.gif'
         else:
             img = 'pictures/black_key_pressed.gif'
-        key_img = PhotoImage(file=img)
+        key_img = PhotoImage(file=os.path.join(sdir_,img))
         find_label(note, event.widget.keys).configure(image=key_img)
         find_label(note, event.widget.keys).image = key_img
 
@@ -225,7 +229,7 @@ def key_released(event):
             img = 'pictures/white_key.gif'
         else:
             img = 'pictures/black_key.gif'
-        key_img = PhotoImage(file=img)
+        key_img = PhotoImage(file=os.path.join(sdir_,img))
         find_label(note, event.widget.keys).configure(image=key_img)
         find_label(note, event.widget.keys).image = key_img
 
@@ -362,7 +366,7 @@ class Piano(Frame):
                 key.append(self.create_key(img, key))
 
         # This group of lines creates the record Label.
-        img = PhotoImage(file='pictures/red_button.gif')
+        img = PhotoImage(file=os.path.join(sdir_,'pictures/red_button.gif'))
         record_button = Label(self, image=img, bd=0)
         record_button.image = img
         record_button.place(x=700, y=0)
@@ -370,7 +374,7 @@ class Piano(Frame):
         record_button.bind('<Button-1>', record_on_off)
 
         # This group of lines creates the play Label.
-        img = PhotoImage(file='pictures/green_button.gif')
+        img = PhotoImage(file=os.path.join(sdir_,'pictures/green_button.gif'))
         play_button = Label(self, image=img, bd=0)
         play_button.image = img
         play_button.place(x=700, y=50)
