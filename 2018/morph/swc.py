@@ -34,8 +34,7 @@ def _parse_line( line ):
     return n, nodeType, x, y, z, R, P
 
 def _add_coordinates( G, n, pos ):
-    G.node[n]['coordinate'] = pos
-    G.node[n]['coordinate2D'] = to2d(pos)
+    G.node[n]['coordinate'] = to2d(pos)
     G.node[n]['pos'] = '%f,%f!' % tuple(pos[:2])
 
 def _print_stats( morph ):
@@ -117,7 +116,7 @@ def do_save_png_using_mpl3d( G, outfile ):
 
 def do_save_png_using_nx(G, outfile):
     import matplotlib.pyplot as plt
-    pos = nx.get_node_attributes(G, 'coordinate2D' )
+    pos = nx.get_node_attributes(G, 'coordinate' )
     nsize = [x/1.0 for x in nx.get_node_attributes(G, 'radius' ).values()]
     nx.draw( G.to_undirected(), pos=pos, node_size=nsize)
     plt.axis('off')
@@ -154,6 +153,10 @@ def do_action( morph, outfile ):
     else:
         raise UserWarning( "Failed to write %s" % outfile )
         
+def _length(s, t, G):
+    p1 = G.node[s]['coordinate']
+    p2 = G.node[t]['coordinate']
+    return sum([(a-b)**2 for (a,b) in zip(p1,p2)]) ** 0.5
 
 def _sanitize_morphology(G):
     # Housekeeping.
@@ -173,7 +176,7 @@ def swc2nx( swcfile ):
             _add_coordinates(morph, n, (x,y,z))
             if P < 0:
                 continue
-            morph.add_edge(P, n)
+            morph.add_edge(P, n, length = _length(P,n,morph) )
     _sanitize_morphology(morph)
     return morph
 
