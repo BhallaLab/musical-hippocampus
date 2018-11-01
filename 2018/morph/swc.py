@@ -35,17 +35,17 @@ def _parse_line( line ):
 
 def _add_coordinates( G, n, pos ):
     G.node[n]['coordinate'] = to2d(pos)
-    G.node[n]['pos'] = '%f,%f!' % tuple(pos[:2])
+    G.node[n]['pos'] = '%f,%f!' % tuple(to2d(pos[:2]))
 
 def _print_stats( morph ):
     print( ' Number of nodes: %d' % morph.number_of_nodes() )
     print( ' Number of edges: %d' % morph.number_of_edges() )
 
 def to2d( point ):
-    if len(point) == 2:
-        return point
-    else:
-        return tuple(point[:2])
+    if len(point) > 2:
+        point = point[:2]
+    return tuple([int(x) for x in point])
+
 
 def _nx_to_paths( G ):
     # Create list of paths.

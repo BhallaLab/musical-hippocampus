@@ -1,6 +1,6 @@
-"""plot_morph.py: 
+# -*- coding: utf-8 -*-
+from __future__ import print_function
 
-"""
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"
 __version__          = "1.0.0"
@@ -32,6 +32,9 @@ def int2Clr( x ):
 def _sub(t1, t2):
     return tuple(map(operator.sub, t1, t2))
 
+def _add(t1, t2):
+    return tuple(map(operator.add, t1, t2))
+
 def show_frame( img = None):
     global win_
     if img is None:
@@ -39,30 +42,30 @@ def show_frame( img = None):
     cv2.imshow( "NRN", img )
     cv2.waitKey(1)
 
-def preprocess( g ):
+def preprocess( g, rotate=0, shift=(0,0) ):
     # Make 2d coords to int for opencv.
     pivot = g.node[1]['coordinate']
-    shift = _sub( pivot, (-h_, -w_))
-    # Put them into middle.
+    #Put them into middle.
+    _translate_graph(g, pivot)
+    assert g.node[1]['coordinate'] == (0,0), g.node[1]['coordinate']
+    _rotate_graph(g, rotate)
     _translate_graph(g, shift)
 
-def _rotate_point( point, c, s ):
-    p  = list(point)
-    p[0] = int(c * p[0] - s * p[1])
-    p[1] = int(s * p[0] + c * p[1])
-    return tuple(p)
+def _rotate_point( p, c, s ):
+    return (int(c * p[0] - s * p[1]), int(s * p[0] + c * p[1]))
 
-def _rotate_graph( g, theta ):
+def _rotate_graph( g, ang ):
     # Rotate each node by theta
-    theta = theta / 180 * math.pi
+    theta = ang * math.pi / 180.0 
     c = math.cos(theta)
     s = math.sin(theta)
     for n in g.nodes():
         g.node[n]['coordinate'] = _rotate_point(g.node[n]['coordinate'], c, s)
 
-def _translate_graph(g, x, y):
+def _translate_graph(g, p):
+    x, y = p
     for n in g.nodes():
-        g.node[n]['coordinate'] = _sub((g.node[n]['coordinate'], (-x,-y))
+        g.node[n]['coordinate'] = _sub(g.node[n]['coordinate'], (-x,-y))
 
 def plot_png_using_cv2(G):
     global win_
@@ -70,7 +73,7 @@ def plot_png_using_cv2(G):
     lines = []
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
-    cv2.circle( canvas_, pos[1], 10, int2Clr(G.node[1]['color']), -1 )
+    cv2.circle( canvas_, pos[1], 5, int2Clr(G.node[1]['color']), -1 )
     for n1, n2 in G.edges():
         x1, y1 = pos[n1]
         x2, y2 = pos[n2]
@@ -106,9 +109,8 @@ def update(G, i):
 
 def main():
     g = swc.swc2nx( './pozzo-miller/CNG version/cell2-CA3.CNG.swc' )
-    preprocess( g )
+    preprocess( g, rotate=-60, shift=(100,100) )
     g.node[1]['color'] = 255
-    _rotate_graph(g, -10)
     for i in range(1000):
         update_using_topologicl_sorting(g, i)
         plot_png_using_cv2( g )
