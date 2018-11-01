@@ -10,7 +10,6 @@ __status__           = "Development"
 
 import sys
 import os
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 import networkx as nx
@@ -18,8 +17,8 @@ import operator
 import math
 import swc
 import cv2
+import scipy.interpolate as sci
 
-plt.ion()
 
 background_ = 0
 h_, w_      = 500, 1000
@@ -27,24 +26,46 @@ canvas_     = np.zeros( shape=(h_,w_,3) ) + background_
 win_        = cv2.namedWindow( "NRN" )
 
 ca1_ = [ 
-        ( './swcs/cell1-11b-CA1.CNG.swc', 0, (500,120)),
-        ( './swcs/cell1-2a-CA1.CNG.swc', 60, (530,110)),
-        ( './swcs/cell1-2b-CA1.CNG.swc', 0,  (560,100)),
-        ( './swcs/cell1-3-CA1.CNG.swc', 45,  (590,110)),
-        ( './swcs/cell1-3a-CA1.CNG.swc', 60, (620,120)),
-        ( './swcs/cell1-5b-CA1.CNG.swc', -30,  (650,130)),
+        ((500, 120),   0, './swcs/cell1-11b-CA1.CNG.swc' ),
+        ((530, 110),  60, './swcs/cell1-2a-CA1.CNG.swc'  ),
+        ((560, 100),   0, './swcs/cell1-2b-CA1.CNG.swc'  ),
+        ((590, 111),  45, './swcs/cell1-3-CA1.CNG.swc'   ),
+        ((620, 121), -120, './swcs/cell1-3a-CA1.CNG.swc'  ),
+        ((650, 131), -210,'./swcs/cell1-5b-CA1.CNG.swc'  ),
         ]
 
 ca3_ = [ 
-        ( './swcs/cell1-3a-CA3.CNG.swc', 30, (80,200)),
-        ( './swcs/cell1-8b-CA3.CNG.swc', 0, (70,220)),
-        ( './swcs/cell1-CA3.CNG.swc', -60, (60,240)),
-        ( './swcs/cell49-CA3.CNG.swc', -60, (50,260)),
-        ( './swcs/cell2-CA3.CNG.swc', -60, (60,280)),
-        ( './swcs/cell13-CA3.CNG.swc', -60, (70,300)),
-        ( './swcs/cell1-8b-CA3.CNG.swc', 0, (80,320)),
-        ( './swcs/cell1-CA3.CNG.swc', -60, (85,340)),
+        ((85, 340), 120, './swcs/cell1-CA3.CNG.swc'    ),
+        ((80, 330), 180, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((75, 320), -60, './swcs/cell13-CA3.CNG.swc'   ),
+        ((70, 310), -60, './swcs/cell2-CA3.CNG.swc'    ),
+        ((70, 300), -0, './swcs/cell49-CA3.CNG.swc'   ),
+        ((75, 290), -60, './swcs/cell1-CA3.CNG.swc'    ),
+        ((80, 280),   0, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((85, 270),  30, './swcs/cell1-3a-CA3.CNG.swc' ),
         ]
+
+def smooth_line(ps):
+    print( ps )
+    ps = np.array(ps)
+    X, Y = ps[:,0], ps[:,1]
+    fs = sci.splrep(X, Y)
+    x = np.linspace(min(X), max(X), 20)
+    y = sci.splev(x, fs)
+    return zip(map(int,x),map(int, y))
+
+def ca1Toca3( ):
+    global ca1_, ca3_
+    path = [ x[0] for x in ca3_+ca1_ ]
+    path += [(100,100), (80,120) ]
+    path = sorted(path, key=lambda x: swc._distance(x, (100,500) ))
+    path = smooth_line(path)
+    g = nx.path_graph(len(path), create_using=nx.DiGraph() )
+    for n, p in zip(g.nodes(), path):
+        g.node[n]['color'] = 255
+        g.node[n]['coordinate'] = p
+    return g
+
 
 def int2Clr( x ):
     r, g, b, a = cm.hot(x)
@@ -131,18 +152,20 @@ def update(G, i):
 
 def create_canvas( ):
     nrns = []
-    for k, theta, pos in ca1_:
+    for pos, theta, k in ca1_:
         print( k, theta, pos )
         g = swc.swc2nx(k, scale=0.2)
         preprocess( g, rotate=theta, shift=pos )
         g.node[1]['color'] = 255
         nrns.append( g )
 
-    for k, theta, pos in ca3_:
+    for pos, theta, k in ca3_:
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         g.node[1]['color'] = 255
         nrns.append( g )
+    #  g = ca1Toca3()
+    nrns.append(g)
     return nrns
 
 def main():
