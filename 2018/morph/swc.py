@@ -44,7 +44,7 @@ def _print_stats( morph ):
 def to2d( point ):
     if len(point) > 2:
         point = point[:2]
-    return tuple([int(x) for x in point])
+    return tuple([int(x)//5 for x in point])
 
 
 def _nx_to_paths( G ):
@@ -63,8 +63,7 @@ def _nx_to_paths( G ):
             f = list(g.predecessors(v))[0]
             edges.append( (f,v) )
             path.append(f)
-
-        paths.append([G.node[x]['coordinate'] for x in path])
+        paths.append(path)
         # Remove these edges
         g.remove_edges_from(edges)
     return paths
@@ -98,61 +97,6 @@ def _smooth_path( path ):
         path = zip(*res)
     return path
 
-def do_save_png_using_mpl3d( G, outfile ):
-    global args_
-    from mpl_toolkits.mplot3d import Axes3D
-    ax = plt.subplot( 111, projection = '3d' )
-    #  ax.view_init(90, 0)
-    paths = _nx_to_paths(G)
-    #  paths = [ _smooth_path(p) for p in paths ]
-    for p in paths:
-        X, Y, Z = zip(*p)
-        ax.plot(X, Y, Z, color='b')
-    # plot soma.
-    x, y, z = G.node[1]['coordinate']
-    ax.scatter( [x], [y], [z], c='red', s=G.node[1]['radius']*10)
-    ax.grid( False )
-    #  plt.axis('off')
-
-def do_save_png_using_nx(G, outfile):
-    import matplotlib.pyplot as plt
-    pos = nx.get_node_attributes(G, 'coordinate' )
-    nsize = [x/1.0 for x in nx.get_node_attributes(G, 'radius' ).values()]
-    nx.draw( G.to_undirected(), pos=pos, node_size=nsize)
-    plt.axis('off')
-
-def write_to_csv( G, outfile ):
-    import itertools
-    paths = _nx_to_paths(G)
-    txt = None
-    for line in itertools.zip_longest(*paths, fillvalue=('','','')):
-        if txt is None:
-            txt = ','.join(['x{0},y{0},z{0}'.format(i) for i in range(len(line))])
-        line = ','.join([ ','.join(map(str,x)) for x in line ])
-        txt += '\n%s' % line
-    with open(outfile, 'w' ) as f:
-        f.write( txt )
-
-def do_action( morph, outfile ):
-    global args_
-    action = outfile.split('.')[-1]
-    if action == 'png':
-        do_save_png( morph, outfile)
-    elif action == 'dot':
-        nx.nx_agraph.write_dot( morph, outfile )
-    elif action == 'csv':
-        # write all paths to csv file.
-        write_to_csv( morph, outfile )
-    else:
-        raise UserWarning( 'Unknown action %s. Will do nothing.' % action )
-        return False
-
-    if os.path.isfile( outfile ):
-        print( "[INFO ] Successfully wrote %s" % outfile )
-        return True
-    else:
-        raise UserWarning( "Failed to write %s" % outfile )
-        
 def _length(s, t, G):
     p1 = G.node[s]['coordinate']
     p2 = G.node[t]['coordinate']
@@ -164,7 +108,27 @@ def _sanitize_morphology(G):
     remove = [ n for n in G.nodes() if 'coordinate' not in G.node[n]]
     G.remove_nodes_from(remove)
 
-def swc2nx( swcfile ):
+def resample( g, every ):
+    G = nx.DiGraph()
+    sinks = [ n for n, outd in list(g.out_degree()) if outd == 0 ]
+    for s in sinks:
+        # There is only one path from each sink to source.
+        path = [s]
+        while g.in_degree(path[-1]) == 1:
+            # select a incoming vertices
+            v = path[-1]
+            f = list(g.predecessors(v))[0]
+            path.append(f)
+        sampled = path[::every] 
+        if sampled[-1] != path[-1]:
+            sampled.append(path[-1])
+        for n2, n1 in zip(sampled, sampled[1:]):
+            G.add_node(n1, **g.node[n1] )
+            G.add_node(n2, **g.node[n2] )
+            G.add_edge(n1, n2)
+    return G
+
+def swc2nx( swcfile, scale = 1 ):
     morph = nx.DiGraph()
     with codecs.open( swcfile, 'r', encoding='utf-8', errors='ignore') as f:
         for line in f:
@@ -178,40 +142,7 @@ def swc2nx( swcfile ):
                 continue
             morph.add_edge(P, n, length = _length(P,n,morph) )
     _sanitize_morphology(morph)
-    return morph
 
-def main( args ):
-    global args_
-    args_ = args
-    morph = swc2nx( args_.input )
-    _print_stats( morph )
-    outfile = args_.output or '%s.%s' % (args_.input, args_.fmt)
-    do_action( morph, outfile )
+    everyN = int(1 / scale)
+    morph = resample(morph, everyN)
     return morph
-
-if __name__ == '__main__':
-    import argparse
-    # Argument parser.
-    description = '''SWC to various other formats.'''
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--input', '-i'
-        , required = True, type = str
-        , help = 'Input file (swc)'
-        )
-    parser.add_argument('--fmt', '-f'
-        , required = False, default = 'png'
-        , type = str
-        , help = 'Output format dot | tikz | png '
-        )
-    parser.add_argument('--output', '-o'
-        , required = False, default = ''
-        , help = 'Write result to this format.'
-        )
-    parser.add_argument('--engine', '-e'
-        , required = False, default = 'networkx'
-        , help = 'To draw PNG which engine to use (networkx|matplotlib)'
-        )
-    class Args: pass 
-    args = Args()
-    parser.parse_args(namespace=args)
-    main( args )

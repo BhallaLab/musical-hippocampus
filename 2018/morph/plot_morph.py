@@ -21,12 +21,33 @@ import cv2
 
 plt.ion()
 
-h_, w_ = 1000, 1000
-canvas_ = np.zeros( shape=(h_,w_,3) ) + 255
-win_ = cv2.namedWindow( "NRN" )
+background_ = 0
+h_, w_      = 500, 1000
+canvas_     = np.zeros( shape=(h_,w_,3) ) + background_
+win_        = cv2.namedWindow( "NRN" )
+
+ca1_ = [ 
+        ( './swcs/cell1-11b-CA1.CNG.swc', 0, (500,120)),
+        ( './swcs/cell1-2a-CA1.CNG.swc', 60, (530,110)),
+        ( './swcs/cell1-2b-CA1.CNG.swc', 0,  (560,100)),
+        ( './swcs/cell1-3-CA1.CNG.swc', 45,  (590,110)),
+        ( './swcs/cell1-3a-CA1.CNG.swc', 60, (620,120)),
+        ( './swcs/cell1-5b-CA1.CNG.swc', -30,  (650,130)),
+        ]
+
+ca3_ = [ 
+        ( './swcs/cell1-3a-CA3.CNG.swc', 30, (80,200)),
+        ( './swcs/cell1-8b-CA3.CNG.swc', 0, (70,220)),
+        ( './swcs/cell1-CA3.CNG.swc', -60, (60,240)),
+        ( './swcs/cell49-CA3.CNG.swc', -60, (50,260)),
+        ( './swcs/cell2-CA3.CNG.swc', -60, (60,280)),
+        ( './swcs/cell13-CA3.CNG.swc', -60, (70,300)),
+        ( './swcs/cell1-8b-CA3.CNG.swc', 0, (80,320)),
+        ( './swcs/cell1-CA3.CNG.swc', -60, (85,340)),
+        ]
 
 def int2Clr( x ):
-    r, g, b, a = cm.hsv(x)
+    r, g, b, a = cm.hot(x)
     return int(r*255), int(g*255), int(b*255)
 
 def _sub(t1, t2):
@@ -47,7 +68,7 @@ def preprocess( g, rotate=0, shift=(0,0) ):
     pivot = g.node[1]['coordinate']
     #Put them into middle.
     _translate_graph(g, pivot)
-    assert g.node[1]['coordinate'] == (0,0), g.node[1]['coordinate']
+    #  assert g.node[1]['coordinate'] <= (5,5), g.node[1]['coordinate']
     _rotate_graph(g, rotate)
     _translate_graph(g, shift)
 
@@ -67,10 +88,8 @@ def _translate_graph(g, p):
     for n in g.nodes():
         g.node[n]['coordinate'] = _sub(g.node[n]['coordinate'], (-x,-y))
 
-def plot_png_using_cv2(G):
+def plot_png_using_cv2(G, canvas_):
     global win_
-    global canvas_
-    lines = []
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
     cv2.circle( canvas_, pos[1], 5, int2Clr(G.node[1]['color']), -1 )
@@ -78,12 +97,16 @@ def plot_png_using_cv2(G):
         x1, y1 = pos[n1]
         x2, y2 = pos[n2]
         c = G.node[n1]['color']
-        cv2.line(canvas_, (x1,y1), (x1, y2),  int2Clr(c), 2 )
+        cv2.line(canvas_, (x1,y1), (x2, y2),  int2Clr(c), 1)
+
+def plot_graphs( gs ):
+    canvas_.fill(background_)
+    [ plot_png_using_cv2(g, canvas_) for g in gs]
 
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
         # Get the flow from incoming.
-        G.node[n]['color'] = G.node[n]['color'] * 0.75
+        G.node[n]['color'] = G.node[n]['color'] * 0.1
         nn = list(G.predecessors(n))
         for s in nn:
             G.node[n]['color'] = G.node[s]['color']
@@ -106,14 +129,27 @@ def update(G, i):
             print(ns, end = ' | ' )
             sys.stdout.flush()
 
+def create_canvas( ):
+    nrns = []
+    for k, theta, pos in ca1_:
+        print( k, theta, pos )
+        g = swc.swc2nx(k, scale=0.2)
+        preprocess( g, rotate=theta, shift=pos )
+        g.node[1]['color'] = 255
+        nrns.append( g )
+
+    for k, theta, pos in ca3_:
+        g = swc.swc2nx(k, scale=0.1)
+        preprocess( g, rotate=theta, shift=pos )
+        g.node[1]['color'] = 255
+        nrns.append( g )
+    return nrns
 
 def main():
-    g = swc.swc2nx( './pozzo-miller/CNG version/cell2-CA3.CNG.swc' )
-    preprocess( g, rotate=-60, shift=(100,100) )
-    g.node[1]['color'] = 255
-    for i in range(1000):
-        update_using_topologicl_sorting(g, i)
-        plot_png_using_cv2( g )
+    nrns = create_canvas()
+    for i in range(100):
+        [update_using_topologicl_sorting(g, i) for g in nrns]
+        plot_graphs(nrns)
         show_frame( )
 
 if __name__ == '__main__':
