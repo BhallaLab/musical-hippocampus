@@ -127,14 +127,14 @@ def plot_png_using_cv2(G, canvas_):
 def plot_graphs( gs ):
     global hippoImg_
     global canvas_
-    #  canvas_.fill(0)
-    canvas_ = hippoImg_.copy()
+    #  canvas_ = hippoImg_.copy()
+    canvas_.fill(0)
     [ plot_png_using_cv2(g, canvas_) for g in gs]
 
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
         # Get the flow from incoming.
-        G.node[n]['color'] = G.node[n]['color'] * 0.1
+        G.node[n]['color'] = G.node[n]['color'] * 0.05
         nn = list(G.predecessors(n))
         for s in nn:
             G.node[n]['color'] = G.node[s]['color']
@@ -142,44 +142,37 @@ def update_using_topologicl_sorting(G, i):
 def _tranfer(G, ss):
     tmp = []
     for parent in ss:
-        #  G.node[parent]['color'] *= 0.9
         for child in G.successors(parent):
             #  G.node[child]['color'] = G.node[parent]['color']
             tmp.append(child)
     return tmp
 
 def update(G, i):
-    ns = [[1]]
-    while len(ns) > 0:
-        bunch = ns.pop(0)
-        if bunch:
-            ns.append( _tranfer(G, bunch) )
-            print(ns, end = ' | ' )
-            sys.stdout.flush()
+    pass
 
 def create_canvas( ):
-    nrns = []
-    for pos, theta, k in ca1_:
-        print( k, theta, pos )
+    nrns = {}
+    for i, (pos, theta, k) in enumerate(ca1_):
         g = swc.swc2nx(k, scale=0.2)
         preprocess( g, rotate=theta, shift=pos )
         g.node[1]['color'] = 255
-        nrns.append( g )
+        nrns['ca1%d'%i] = g
 
-    for pos, theta, k in ca3_:
+    for i, (pos, theta, k) in enumerate(ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         g.node[1]['color'] = 255
-        nrns.append( g )
+        nrns['ca3%d'%i] = g 
     g = ca1Toca3()
-    nrns.append(g)
+    nrns['sc'] = g
     return nrns
 
 def main():
     nrns = create_canvas()
     for i in range(100):
-        [update_using_topologicl_sorting(g, i) for g in nrns]
-        plot_graphs(nrns)
+        #  [update_using_topologicl_sorting(g, i) for g in nrns.values()]
+        [update(g, i) for g in nrns.values()]
+        plot_graphs(nrns.values())
         show_frame( )
 
 if __name__ == '__main__':
