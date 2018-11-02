@@ -20,33 +20,31 @@ import cv2
 import scipy.interpolate as sci
 
 
+sdir_       = os.path.dirname( __file__ )
 background_ = 0
-h_, w_      = 500, 1000
+h_, w_      = 480, 800
 canvas_     = np.zeros( shape=(h_,w_,3) ) + background_
 win_        = cv2.namedWindow( "NRN" )
+hippoImg_   = cv2.imread( os.path.join( sdir_, 'hippocampus-800x480.png' ) )
 
 ca1_ = [ 
-        ((500, 120),   0, './swcs/cell1-11b-CA1.CNG.swc' ),
-        ((530, 110),  60, './swcs/cell1-2a-CA1.CNG.swc'  ),
-        ((560, 100),   0, './swcs/cell1-2b-CA1.CNG.swc'  ),
-        ((590, 111),  45, './swcs/cell1-3-CA1.CNG.swc'   ),
-        ((620, 121), -120, './swcs/cell1-3a-CA1.CNG.swc'  ),
-        ((650, 131), -210,'./swcs/cell1-5b-CA1.CNG.swc'  ),
+        ((377, 129),   210, './swcs/cell1-11b-CA1.CNG.swc' ),
+        ((397, 125),  250, './swcs/cell1-2a-CA1.CNG.swc'  ),
+        ((414, 123),  -120,  './swcs/cell1-3-CA1.CNG.swc' ),
+        ((430, 124),  60, './swcs/cell1-3a-CA1.CNG.swc'  ),
+        ((456, 120),  -30,'./swcs/cell1-5b-CA1.CNG.swc'  ),
         ]
 
 ca3_ = [ 
-        ((85, 340), 120, './swcs/cell1-CA3.CNG.swc'    ),
-        ((80, 330), 180, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((75, 320), -60, './swcs/cell13-CA3.CNG.swc'   ),
-        ((70, 310), -60, './swcs/cell2-CA3.CNG.swc'    ),
-        ((70, 300), -0, './swcs/cell49-CA3.CNG.swc'   ),
-        ((75, 290), -60, './swcs/cell1-CA3.CNG.swc'    ),
-        ((80, 280),   0, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((85, 270),  30, './swcs/cell1-3a-CA3.CNG.swc' ),
+        ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
+        ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((153, 275), 0, './swcs/cell13-CA3.CNG.swc'   ),
+        ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
+        ((165, 320), -120, './swcs/cell1-CA3.CNG.swc'    ),
         ]
 
 def smooth_line(ps):
-    print( ps )
     ps = np.array(ps)
     X, Y = ps[:,0], ps[:,1]
     fs = sci.splrep(X, Y)
@@ -121,7 +119,9 @@ def plot_png_using_cv2(G, canvas_):
         cv2.line(canvas_, (x1,y1), (x2, y2),  int2Clr(c), 1)
 
 def plot_graphs( gs ):
-    canvas_.fill(background_)
+    global hippoImg_
+    global canvas_
+    canvas_ = hippoImg_
     [ plot_png_using_cv2(g, canvas_) for g in gs]
 
 def update_using_topologicl_sorting(G, i):

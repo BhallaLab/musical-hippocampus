@@ -44,7 +44,7 @@ def _print_stats( morph ):
 def to2d( point ):
     if len(point) > 2:
         point = point[:2]
-    return tuple([int(x)//5 for x in point])
+    return tuple([int(x)//6 for x in point])
 
 
 def _nx_to_paths( G ):
