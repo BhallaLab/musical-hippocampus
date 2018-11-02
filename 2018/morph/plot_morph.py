@@ -19,6 +19,7 @@ import swc
 import cv2
 import scipy.interpolate as sci
 import bezier
+import random
 
 sdir_       = os.path.dirname( __file__ )
 background_ = 0
@@ -59,8 +60,8 @@ def ca1Toca3( ):
             (185,211),(308,156),(355,151), (432,158), (500,158)]
     X, Y = zip(*(nodes))
     nodes = np.asfortranarray([list(X), list(Y)], dtype=float)
-    curve = bezier.Curve(nodes, degree=3)
-    path =curve.evaluate_multi( np.linspace(0,1,20) ).T
+    curve = bezier.Curve(nodes, degree=2)
+    path =curve.evaluate_multi( np.linspace(0,1,10) ).T
     g = nx.path_graph(len(path), create_using=nx.DiGraph() )
     for n, p in zip(g.nodes(), path):
         g.node[n]['color'] = 255
@@ -117,19 +118,18 @@ def plot_png_using_cv2(G, canvas_):
     # draw the soma.
     cv2.circle( canvas_, pos[1], 5, int2Clr(G.node[1]['color']), -1 )
     for n1, n2 in G.edges():
-        x1, y1 = pos[n1]
-        x2, y2 = pos[n2]
-        c = G.node[n1]['color']
-        cv2.line(canvas_, (x1,y1), (x2, y2),  int2Clr(c)
+        (x1, y1), (x2, y2) = pos[n1], pos[n2]
+        cv2.line(canvas_, (x1,y1), (x2, y2)
+                , int2Clr(G.node[n2]['color'])
                 , G[n1][n2].get('width',1)
                 )
 
-def plot_graphs( gs ):
+def plot_graphs( nrns ):
     global hippoImg_
     global canvas_
     #  canvas_ = hippoImg_.copy()
     canvas_.fill(0)
-    [ plot_png_using_cv2(g, canvas_) for g in gs]
+    [plot_png_using_cv2(g, canvas_) for k, g in nrns.items()]
 
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
@@ -139,41 +139,56 @@ def update_using_topologicl_sorting(G, i):
         for s in nn:
             G.node[n]['color'] = G.node[s]['color']
 
-def _tranfer(G, ss):
-    tmp = []
-    for parent in ss:
-        for child in G.successors(parent):
-            #  G.node[child]['color'] = G.node[parent]['color']
-            tmp.append(child)
-    return tmp
+def update(g, i):
+    aps = g.graph['AP']
+    nexts = []
+    for n in aps:
+        c = g.node[n]['color']
+        if c == 0:
+            break
+        g.node[n]['color'] = c * 0.9
+        for p in g.successors(n):
+            g.node[p]['color'] = g.node[n]['color']
+            nexts.append(p)
+    g.graph['AP'] = nexts
 
-def update(G, i):
-    pass
+def inject_ap(g):
+    g.graph['AP'] = [1]
+    for n in g.nodes():
+        g.node[n]['color'] = 0
+    g.node[1]['color'] = 255
 
 def create_canvas( ):
     nrns = {}
     for i, (pos, theta, k) in enumerate(ca1_):
-        g = swc.swc2nx(k, scale=0.2)
+        g = swc.swc2nx(k, scale=0.3)
         preprocess( g, rotate=theta, shift=pos )
-        g.node[1]['color'] = 255
+        inject_ap(g)
         nrns['ca1%d'%i] = g
 
     for i, (pos, theta, k) in enumerate(ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
-        g.node[1]['color'] = 255
+        inject_ap(g)
         nrns['ca3%d'%i] = g 
     g = ca1Toca3()
+    inject_ap(g)
     nrns['sc'] = g
     return nrns
 
 def main():
     nrns = create_canvas()
-    for i in range(100):
-        #  [update_using_topologicl_sorting(g, i) for g in nrns.values()]
+    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
+    for i in range(1000):
         [update(g, i) for g in nrns.values()]
-        plot_graphs(nrns.values())
+        plot_graphs(nrns)
         show_frame( )
+        if i % 20 == 0:
+            gn = random.choice(ca3nrns.keys() )
+            g = nrns[gn]
+            inject_ap(g)
+            if 'ca3' in gn:
+                inject_ap(nrns['sc'])
 
 if __name__ == '__main__':
     main()
