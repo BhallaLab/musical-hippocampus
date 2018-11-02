@@ -18,7 +18,7 @@ import math
 import swc
 import cv2
 import scipy.interpolate as sci
-
+import bezier
 
 sdir_       = os.path.dirname( __file__ )
 background_ = 0
@@ -36,12 +36,12 @@ ca1_ = [
         ]
 
 ca3_ = [ 
-        ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
-        ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((153, 275), 0, './swcs/cell13-CA3.CNG.swc'   ),
-        ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
         ((165, 320), -120, './swcs/cell1-CA3.CNG.swc'    ),
+        ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
+        ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((153, 275), 0, './swcs/cell13-CA3.CNG.swc'   ),
+        ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
         ]
 
 def smooth_line(ps):
@@ -54,16 +54,20 @@ def smooth_line(ps):
 
 def ca1Toca3( ):
     global ca1_, ca3_
-    path = [ x[0] for x in ca3_+ca1_ ]
-    path += [(100,100), (80,120) ]
-    path = sorted(path, key=lambda x: swc._distance(x, (100,500) ))
-    path = smooth_line(path)
+    #  nodes = [(140,312), (154,214), (355,151),(432,188)]
+    nodes = [ (150,330), (130,312), (130,254), (100,200),
+            (185,211),(308,156),(355,151), (432,158), (500,158)]
+    X, Y = zip(*(nodes))
+    nodes = np.asfortranarray([list(X), list(Y)], dtype=float)
+    curve = bezier.Curve(nodes, degree=3)
+    path =curve.evaluate_multi( np.linspace(0,1,20) ).T
     g = nx.path_graph(len(path), create_using=nx.DiGraph() )
     for n, p in zip(g.nodes(), path):
         g.node[n]['color'] = 255
-        g.node[n]['coordinate'] = p
+        g.node[n]['coordinate'] = tuple(map(int,p))
+    for n1, n2 in g.edges():
+        g[n1][n2]['width'] = 3
     return g
-
 
 def int2Clr( x ):
     r, g, b, a = cm.hot(x)
@@ -116,12 +120,15 @@ def plot_png_using_cv2(G, canvas_):
         x1, y1 = pos[n1]
         x2, y2 = pos[n2]
         c = G.node[n1]['color']
-        cv2.line(canvas_, (x1,y1), (x2, y2),  int2Clr(c), 1)
+        cv2.line(canvas_, (x1,y1), (x2, y2),  int2Clr(c)
+                , G[n1][n2].get('width',1)
+                )
 
 def plot_graphs( gs ):
     global hippoImg_
     global canvas_
-    canvas_ = hippoImg_
+    #  canvas_.fill(0)
+    canvas_ = hippoImg_.copy()
     [ plot_png_using_cv2(g, canvas_) for g in gs]
 
 def update_using_topologicl_sorting(G, i):
@@ -164,7 +171,7 @@ def create_canvas( ):
         preprocess( g, rotate=theta, shift=pos )
         g.node[1]['color'] = 255
         nrns.append( g )
-    #  g = ca1Toca3()
+    g = ca1Toca3()
     nrns.append(g)
     return nrns
 
