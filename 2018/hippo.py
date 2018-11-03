@@ -1,37 +1,41 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function
-
-#  This is a modified version of https://github.com/JesseKuntz/my-piano
-
-try:
-    import Tkinter as tk
-except ImportError as e:
-    import tkinter as tk
-
+import pygame
+import random
 from piano import *
+import arena
+import cv2
+import plot_morph
+import numpy as np
 
-h_, w_ = 500, 800
+pygame.init()
+black_ = 0, 0, 0
+screen_ = pygame.display.set_mode(arena.size)
 
-class Hippocampus():
+def runApp():
+    nrns = plot_morph.init()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
 
-    def __init__(self, parent, controller = None):
-        self.parent = parent
-        self.canvas = tk.Canvas()
-        self.piano = Piano( parent )
-        self.canvas.pack( side=tk.TOP )
-        self.piano.pack(side=tk.BOTTOM)
-
-    def update(self):
-        print( '.', end = '' )
-
+        
+        #  cv2.line( arena.canvas_, (10,10), (random.randint(10,100),100), (255,255,255), 3 )
+        plot_morph.update_canvas( nrns )
+        surface = pygame.surfarray.make_surface(
+                    np.flipud(np.rot90(arena.canvas_,k=1))
+                )
+        screen_.blit( surface, (0,0) )
+        pygame.display.update()
 
 def main():
-    root = tk.Tk()
-    root.title = 'Hippocampus'
-    root.geometry( "%sx%s" % (w_,h_))
-    app = Hippocampus(root)
-    root.mainloop()
+    runApp()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        pygame.quit()
+    pygame.quit()

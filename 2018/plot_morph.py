@@ -10,23 +10,16 @@ __status__           = "Development"
 
 import sys
 import os
-import matplotlib.cm as cm
 import numpy as np
+import matplotlib.cm as cm
 import networkx as nx
 import operator
 import math
 import swc
 import cv2
-import scipy.interpolate as sci
 import bezier
 import random
-
-sdir_       = os.path.dirname( __file__ )
-background_ = 0
-h_, w_      = 480, 800
-canvas_     = np.zeros( shape=(h_,w_,3) ) + background_
-win_        = cv2.namedWindow( "NRN" )
-hippoImg_   = cv2.imread( os.path.join( sdir_, 'hippocampus-800x480-1.png' ) )
+from arena import *
 
 ca1_ = [ 
         ((377, 129),   210, './swcs/cell1-11b-CA1.CNG.swc' ),
@@ -149,7 +142,7 @@ def update_using_topologicl_sorting(G, i):
         for s in nn:
             G.node[n]['color'] = G.node[s]['color']
 
-def update(g, i):
+def update(g):
     aps = g.graph['AP']
     nexts = []
     for n in aps:
@@ -188,14 +181,18 @@ def create_canvas( ):
         nrns['ca3%d'%i] = g 
     return nrns
 
-def main():
+def update_canvas( nrns ):
+    [update(g) for g in nrns.values()]
+    plot_graphs(nrns)
+
+def init():
     nrns = create_canvas()
-    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
-    ca3nrnsNames = list( ca3nrns.keys() )
+    return nrns
+
+def main():
     for i in range(1000):
         [update(g, i) for g in nrns.values()]
         plot_graphs(nrns)
-        show_frame( )
         if i % 20 == 0:
             gn = random.choice(ca3nrnsNames)
             g = nrns[gn]
