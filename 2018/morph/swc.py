@@ -15,9 +15,10 @@ __status__           = "Development"
 import sys
 import os
 import codecs
+import numpy as np
 import re
 import networkx as nx
-import matplotlib.pyplot as plt
+import random
 args_ = None
 
 def _get_node_type( t ):
@@ -46,6 +47,14 @@ def to2d( point ):
         point = point[:2]
     return tuple([int(x)//6 for x in point])
 
+def add_axon( gid,  g, soma_path ):
+    prev = 1
+    for i, coord in enumerate(soma_path):
+        x, y = map(int, coord)
+        nName = 'axon%s%d' % (gid,i)
+        g.add_node(nName, coordinate = (x,y))
+        g.add_edge(prev, nName, width = 1)
+        prev = nName
 
 def _nx_to_paths( G ):
     # Create list of paths.

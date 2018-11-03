@@ -31,7 +31,7 @@ hippoImg_   = cv2.imread( os.path.join( sdir_, 'hippocampus-800x480-1.png' ) )
 ca1_ = [ 
         ((377, 129),   210, './swcs/cell1-11b-CA1.CNG.swc' ),
         ((397, 125),  250, './swcs/cell1-2a-CA1.CNG.swc'  ),
-        ((414, 123),  -120,  './swcs/cell1-3-CA1.CNG.swc' ),
+        ((414, 123),  120,  './swcs/cell1-3-CA1.CNG.swc' ),
         ((430, 124),  60, './swcs/cell1-3a-CA1.CNG.swc'  ),
         ((456, 120),  -30,'./swcs/cell1-5b-CA1.CNG.swc'  ),
         ]
@@ -53,15 +53,23 @@ def smooth_line(ps):
     y = sci.splev(x, fs)
     return zip(map(int,x),map(int, y))
 
-def ca1Toca3( ):
-    global ca1_, ca3_
-    #  nodes = [(140,312), (154,214), (355,151),(432,188)]
+def schaffer_collateral( segments = 10, zigzag = 0 ):
     nodes = [ (150,330), (130,312), (130,254), (100,200),
-            (185,211),(308,156),(355,151), (432,158), (500,158)]
-    X, Y = zip(*(nodes))
+              (185,211), (308,156), (355,151), (432,158), 
+              (500,158)
+            ]
+    if zigzag > 0:
+        nodes = [ (x+random.randint(-zigzag,zigzag),
+            y+random.randint(-zigzag,zigzag)) for x, y in nodes ]
+    X, Y  = zip(*(nodes))
     nodes = np.asfortranarray([list(X), list(Y)], dtype=float)
     curve = bezier.Curve(nodes, degree=2)
-    path =curve.evaluate_multi( np.linspace(0,1,10) ).T
+    path  = curve.evaluate_multi(np.linspace(0, 1, segments)).T
+    return path
+
+def ca1Toca3( ):
+    global ca1_, ca3_
+    path = schaffer_collateral()
     g = nx.path_graph(len(path), create_using=nx.DiGraph() )
     for n, p in zip(g.nodes(), path):
         g.node[n]['color'] = 255
@@ -160,35 +168,36 @@ def inject_ap(g):
 
 def create_canvas( ):
     nrns = {}
+    # Shaffer collatral
+    #  inject_ap(gSC)
+
     for i, (pos, theta, k) in enumerate(ca1_):
         g = swc.swc2nx(k, scale=0.3)
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
         nrns['ca1%d'%i] = g
 
+    scPath = schaffer_collateral( zigzag=2)
     for i, (pos, theta, k) in enumerate(ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
+        swc.add_axon(i, g, scPath)
         inject_ap(g)
         nrns['ca3%d'%i] = g 
-    g = ca1Toca3()
-    inject_ap(g)
-    nrns['sc'] = g
     return nrns
 
 def main():
     nrns = create_canvas()
     ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
+    ca3nrnsNames = list( ca3nrns.keys() )
     for i in range(1000):
         [update(g, i) for g in nrns.values()]
         plot_graphs(nrns)
         show_frame( )
         if i % 20 == 0:
-            gn = random.choice(ca3nrns.keys() )
+            gn = random.choice(ca3nrnsNames)
             g = nrns[gn]
             inject_ap(g)
-            if 'ca3' in gn:
-                inject_ap(nrns['sc'])
 
 if __name__ == '__main__':
     main()
