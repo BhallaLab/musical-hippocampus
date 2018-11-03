@@ -189,7 +189,17 @@ def init():
     nrns = create_canvas()
     return nrns
 
+def trigger_random_ca3( nrns ):
+    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
+    ca3nrnsNames = list( ca3nrns.keys() )
+    gn = random.choice(ca3nrnsNames)
+    g = nrns[gn]
+    inject_ap(g)
+
 def main():
+    nrns = init()
+    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
+    ca3nrnsNames = list( ca3nrns.keys() )
     for i in range(1000):
         [update(g, i) for g in nrns.values()]
         plot_graphs(nrns)
