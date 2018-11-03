@@ -37,10 +37,10 @@ ca1_ = [
         ]
 
 ca3_ = [ 
-        ((165, 320), -120, './swcs/cell1-CA3.CNG.swc'    ),
+        ((165, 320), -90, './swcs/cell1-CA3.CNG.swc'    ),
         ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
         ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((153, 275), 0, './swcs/cell13-CA3.CNG.swc'   ),
+        ((153, 275), 90, './swcs/cell13-CA3.CNG.swc'   ),
         ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
         ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
         ]
@@ -53,11 +53,13 @@ def smooth_line(ps):
     y = sci.splev(x, fs)
     return zip(map(int,x),map(int, y))
 
-def schaffer_collateral( segments = 10, zigzag = 0 ):
+def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     nodes = [ (150,330), (130,312), (130,254), (100,200),
               (185,211), (308,156), (355,151), (432,158), 
               (500,158)
             ]
+    if origin:
+        nodes[0] = origin
     if zigzag > 0:
         nodes = [ (x+random.randint(-zigzag,zigzag),
             y+random.randint(-zigzag,zigzag)) for x, y in nodes ]
@@ -177,10 +179,10 @@ def create_canvas( ):
         inject_ap(g)
         nrns['ca1%d'%i] = g
 
-    scPath = schaffer_collateral( zigzag=2)
     for i, (pos, theta, k) in enumerate(ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
+        scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
         swc.add_axon(i, g, scPath)
         inject_ap(g)
         nrns['ca3%d'%i] = g 

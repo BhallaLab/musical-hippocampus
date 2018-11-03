@@ -52,9 +52,12 @@ def add_axon( gid,  g, soma_path ):
     for i, coord in enumerate(soma_path):
         x, y = map(int, coord)
         nName = 'axon%s%d' % (gid,i)
+        assert nName not in g
         g.add_node(nName, coordinate = (x,y))
+        assert prev in g
         g.add_edge(prev, nName, width = 1)
         prev = nName
+        print( nName, end = ',' )
 
 def _nx_to_paths( G ):
     # Create list of paths.
