@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, division
+
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"
 __version__          = "1.0.0"
@@ -85,16 +88,39 @@ class SeqRecognizer():
     def inject_seq(self, seq):
         [ self.inject(s) for s in seq ]
 
-def test():
+def match_indices_seq_score( a ):
+    newSeq = []
+    for i, x in enumerate(a):
+        y = a[max(0,i-1)]
+        if x-y != 1:
+            newSeq += range(x+1)
+        else:
+            newSeq.append(x)
+    return (1+max(a))/len(newSeq)
+
+
+def match_two_seq(seq, baseseq):
+    d = { x : i for i, x in enumerate(baseseq)}
+    seqI = [ d[x] for x in seq ]
+    r = match_indices_seq_score(seqI)
+    return r
+
+
+def test1():
     seq = [1,2,3,4,5] 
     a = SeqRecognizer( seq )
     a.inject_seq(seq)
-    print( a )
     for i in range(5):
         a.reset()
         random.shuffle(seq)
         a.inject_seq( seq )
-        print(a)
+
+def test( ):
+    seq = ['1','2','3','4','5']
+    for i in range(20):
+        random.shuffle(seq)
+        r = match_two_seq( seq, '12345' )
+        print(r, ''.join(seq))
 
 if __name__ == '__main__':
     test()

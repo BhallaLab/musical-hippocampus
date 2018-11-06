@@ -4,7 +4,6 @@
 from __future__ import print_function
 import pygame
 import random
-from piano import *
 import arena
 import cv2
 import canvas
