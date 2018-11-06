@@ -47,6 +47,7 @@ class SeqRecognizer():
     def reset(self):
         self.history = [0] * self._historyLen
         self.output = 0
+        self._output = 0
 
 def test():
     a = SeqRecognizer( [1,2,3,4,5] )

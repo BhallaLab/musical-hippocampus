@@ -206,6 +206,11 @@ def inject_alphabet( g, x ):
 def playback(g):
     sound.play_seq( g.graph['SeqRec'].seq )
 
+def playback_background( g ):
+    import subprocess
+    seq = [str(x) for x in g.graph['SeqRec'].seq]
+    subprocess.Popen( [ "timeout", "5", "python", "./play.py" ] + seq )
+
 def inject_alphabet_ca3( g, x ):
     global ca1nrnsNames_
     inject_ap(g)
@@ -215,9 +220,8 @@ def inject_alphabet_ca3( g, x ):
         inject_alphabet(g, x)
         if g.graph['SeqRec'].output == 1:
             inject_ap(g)
-            playback(g)
+            playback_background( g )
             g.graph['SeqRec'].reset()
-
 
 def main():
     nrns = init()
