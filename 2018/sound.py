@@ -33,6 +33,9 @@ def play(note, duration = 2e-1 ):
     pygame.mixer.music.play()
     time.sleep( duration )
 
+def play_int(i):
+    play( notes[i] )
+
 def play_seq( seq ):
     global notes 
     for i in seq:

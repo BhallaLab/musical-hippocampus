@@ -7,29 +7,36 @@ import random
 from piano import *
 import arena
 import cv2
-import plot_morph
+import canvas
 import numpy as np
 import itertools
+import time
 
 pygame.init()
 black_ = 0, 0, 0
 screen_ = pygame.display.set_mode(arena.size)
 
 def runApp():
-    plot_morph.init()
+    canvas.init()
     for i in itertools.count():
-        plot_morph.update_canvas( )
+        canvas.update_canvas( )
         img = np.flipud(np.rot90(arena.canvas_,k=1))
         surface = pygame.surfarray.make_surface(img)
         screen_.blit( surface, (0,0) )
         pygame.display.update()
-        if i % 20 == 0:
-            plot_morph.inject_random_alphabet()
 
         # handle event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
+
+            if event.type != 2:
+                continue
+
+            k = chr(event.key)
+            if '0' < k < '8':
+                canvas.inject_alphabet_ca3(int(k))
+
 
 def main():
     runApp()

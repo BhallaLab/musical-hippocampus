@@ -198,9 +198,9 @@ def inject_random_alphabet( ):
     gn = random.choice(ca3nrnsNames_)
     g = nrns_[gn]
     x = random.choice( alphabets_ )
-    inject_alphabet_ca3(g, x )
+    inject_alphabet_ca3(x, g )
 
-def inject_alphabet( g, x ):
+def inject_alphabet( x, g = None ):
     g.graph['SeqRec'].inject(x)
 
 def playback(g):
@@ -211,14 +211,19 @@ def playback_background( g ):
     seq = [str(x) for x in g.graph['SeqRec'].seq]
     subprocess.Popen( [ "timeout", "5", "python", "./play.py" ] + seq )
 
-def inject_alphabet_ca3( g, x ):
+def inject_alphabet_ca3(x, g = None):
     global ca1nrnsNames_
+    if g is None:
+        g = nrns_['ca3.%d'%x]
     inject_ap(g)
+    sound.play_int(x)
+
     # same alphabets gets injected into ca1
     for k in ca1nrnsNames_:
         g = nrns_[k]
-        inject_alphabet(g, x)
+        inject_alphabet(x, g)
         if g.graph['SeqRec'].output == 1:
+            print( "[INFO ] Sequence recognized: %s" % str(g.graph['SeqRec'].seq) )
             inject_ap(g)
             playback_background( g )
             g.graph['SeqRec'].reset()
