@@ -59,7 +59,6 @@ def add_axon( gid,  g, soma_path ):
         assert prev in g
         g.add_edge(prev, nName, width = 1)
         prev = nName
-        print( nName, end = ',' )
 
 def _nx_to_paths( G ):
     # Create list of paths.

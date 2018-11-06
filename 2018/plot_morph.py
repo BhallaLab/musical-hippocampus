@@ -11,7 +11,7 @@ __status__           = "Development"
 import sys
 import os
 import numpy as np
-import matplotlib.cm as cm
+import pygame
 import networkx as nx
 import operator
 import math
@@ -74,8 +74,12 @@ def ca1Toca3( ):
     return g
 
 def int2Clr( x ):
-    r, g, b, a = cm.hot(x)
-    return int(r*255), int(g*255), int(b*255)
+    b = int(x)
+    left = 255 - b
+    r = max(10, left//2)
+    g = max(5, left//2)
+    b = 255 - r - g
+    return (r, g, b)
 
 def _sub(t1, t2):
     return tuple(map(operator.sub, t1, t2))
@@ -124,7 +128,8 @@ def plot_png_using_cv2(G, canvas_):
         (x1, y1), (x2, y2) = pos[n1], pos[n2]
         cv2.line(canvas_, (x1,y1), (x2, y2)
                 , int2Clr(G.node[n2]['color'])
-                , G[n1][n2].get('width',1)
+                , G[n1][n2].get('width', 1)
+                , 4
                 )
 
 def plot_graphs( nrns ):
@@ -137,10 +142,10 @@ def plot_graphs( nrns ):
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
         # Get the flow from incoming.
-        G.node[n]['color'] = G.node[n]['color'] * 0.05
         nn = list(G.predecessors(n))
         for s in nn:
             G.node[n]['color'] = G.node[s]['color']
+        G.node[n]['color'] = 0
 
 def update(g):
     aps = g.graph['AP']
