@@ -1,9 +1,3 @@
-"""sequence.py: 
-
-Sequence recognising element.
-
-"""
-    
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"
 __version__          = "1.0.0"
@@ -16,8 +10,9 @@ import os
 import random
 import numpy as np
 import config
+import sound
 import difflib
-
+import threading
 
 class SeqRecognizer():
 
@@ -39,7 +34,6 @@ class SeqRecognizer():
         s = difflib.SequenceMatcher(None, a, b)
         self._output = s.ratio()
         if self._output >= self.threshold:
-            print( 'FIRE' )
             self.output = 1
 
     def __hash__(self):
@@ -51,7 +45,7 @@ class SeqRecognizer():
         return '%10s → %.2f' % (histStr, self._output)
 
     def reset(self):
-        self.history = []
+        self.history = [0] * self._historyLen
         self.output = 0
 
 def test():

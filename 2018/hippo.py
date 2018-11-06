@@ -19,12 +19,12 @@ def runApp():
     plot_morph.init()
     for i in itertools.count():
         plot_morph.update_canvas( )
-        if i % 10 == 0:
-            plot_morph.inject_random_alphabet()
         img = np.flipud(np.rot90(arena.canvas_,k=1))
         surface = pygame.surfarray.make_surface(img)
         screen_.blit( surface, (0,0) )
         pygame.display.update()
+        if i % 20 == 0:
+            plot_morph.inject_random_alphabet()
 
         # handle event
         for event in pygame.event.get():

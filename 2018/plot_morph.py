@@ -22,6 +22,9 @@ import random
 from arena import *
 from config import *
 import sequence
+import sound
+import threading
+import time
 
 nrns_         = {}
 ca3nrnsNames_ = None
@@ -200,6 +203,9 @@ def inject_random_alphabet( ):
 def inject_alphabet( g, x ):
     g.graph['SeqRec'].inject(x)
 
+def playback(g):
+    sound.play_seq( g.graph['SeqRec'].seq )
+
 def inject_alphabet_ca3( g, x ):
     global ca1nrnsNames_
     inject_ap(g)
@@ -209,6 +215,8 @@ def inject_alphabet_ca3( g, x ):
         inject_alphabet(g, x)
         if g.graph['SeqRec'].output == 1:
             inject_ap(g)
+            playback(g)
+            g.graph['SeqRec'].reset()
 
 
 def main():
