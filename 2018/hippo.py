@@ -16,14 +16,13 @@ black_ = 0, 0, 0
 screen_ = pygame.display.set_mode(arena.size)
 
 def runApp():
-    nrns = plot_morph.init()
+    plot_morph.init()
     for i in itertools.count():
-        plot_morph.update_canvas( nrns )
+        plot_morph.update_canvas( )
         if i % 10 == 0:
-            plot_morph.trigger_random_ca3(nrns)
+            plot_morph.inject_random_alphabet()
         img = np.flipud(np.rot90(arena.canvas_,k=1))
         surface = pygame.surfarray.make_surface(img)
-        #  print( img.shape, surface )
         screen_.blit( surface, (0,0) )
         pygame.display.update()
 

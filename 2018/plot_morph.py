@@ -20,23 +20,12 @@ import cv2
 import bezier
 import random
 from arena import *
+from config import *
+import sequence
 
-ca1_ = [ 
-        ((377, 129),   210, './swcs/cell1-11b-CA1.CNG.swc' ),
-        ((397, 125),  250, './swcs/cell1-2a-CA1.CNG.swc'  ),
-        ((414, 123),  120,  './swcs/cell1-3-CA1.CNG.swc' ),
-        ((430, 124),  60, './swcs/cell1-3a-CA1.CNG.swc'  ),
-        ((456, 120),  -30,'./swcs/cell1-5b-CA1.CNG.swc'  ),
-        ]
-
-ca3_ = [ 
-        ((165, 320), -90, './swcs/cell1-CA3.CNG.swc'    ),
-        ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
-        ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((153, 275), 90, './swcs/cell13-CA3.CNG.swc'   ),
-        ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
-        ]
+nrns_         = {}
+ca3nrnsNames_ = None
+ca1nrnsNames_ = None
 
 def smooth_line(ps):
     ps = np.array(ps)
@@ -132,12 +121,13 @@ def plot_png_using_cv2(G, canvas_):
                 , 4
                 )
 
-def plot_graphs( nrns ):
+def plot_graphs( ):
     global hippoImg_
     global canvas_
+    global nrns_
     #  canvas_ = hippoImg_.copy()
     canvas_.fill(0)
-    [plot_png_using_cv2(g, canvas_) for k, g in nrns.items()]
+    [plot_png_using_cv2(g, canvas_) for k, g in nrns_.items()]
 
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
@@ -167,39 +157,59 @@ def inject_ap(g):
     g.node[1]['color'] = 255
 
 def create_canvas( ):
-    nrns = {}
-    # Shaffer collatral
-    #  inject_ap(gSC)
-
     for i, (pos, theta, k) in enumerate(ca1_):
         g = swc.swc2nx(k, scale=0.3)
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
-        nrns['ca1%d'%i] = g
+        g.graph['SeqRec'] = sequence.SeqRecognizer([])
+        n1, seq = connections_[i]
+        g.graph['SeqRec'] = sequence.SeqRecognizer(seq)
+        nrns_['ca1.%d'%i] = g
 
     for i, (pos, theta, k) in enumerate(ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
         swc.add_axon(i, g, scPath)
+        g.graph['SeqRec'] = sequence.SeqRecognizer([])
+        nrns_['ca3.%d'%i] = g 
         inject_ap(g)
-        nrns['ca3%d'%i] = g 
-    return nrns
 
-def update_canvas( nrns ):
-    [update(g) for g in nrns.values()]
-    plot_graphs(nrns)
+def update_canvas( ):
+    global nrns_
+    [update(g) for g in nrns_.values()]
+    plot_graphs()
 
 def init():
-    nrns = create_canvas()
-    return nrns
+    global ca3nrnsNames_
+    global ca1nrnsNames_
+    create_canvas()
+    ca3nrns = { k : v for k, v in nrns_.items() if 'ca3.' in k }
+    ca1nrns = { k : v for k, v in nrns_.items() if 'ca1.' in k }
+    ca3nrnsNames_ = list( ca3nrns.keys() )
+    ca1nrnsNames_ = list( ca1nrns.keys() )
 
-def trigger_random_ca3( nrns ):
-    ca3nrns = { k : v for k, v in nrns.items() if 'ca3' in k }
-    ca3nrnsNames = list( ca3nrns.keys() )
-    gn = random.choice(ca3nrnsNames)
-    g = nrns[gn]
+def inject_random_alphabet( ):
+    global ca3nrnsNames_
+    global nrns_
+    gn = random.choice(ca3nrnsNames_)
+    g = nrns_[gn]
+    x = random.choice( alphabets_ )
+    inject_alphabet_ca3(g, x )
+
+def inject_alphabet( g, x ):
+    g.graph['SeqRec'].inject(x)
+
+def inject_alphabet_ca3( g, x ):
+    global ca1nrnsNames_
     inject_ap(g)
+    # same alphabets gets injected into ca1
+    for k in ca1nrnsNames_:
+        g = nrns_[k]
+        inject_alphabet(g, x)
+        if g.graph['SeqRec'].output == 1:
+            inject_ap(g)
+
 
 def main():
     nrns = init()
@@ -211,7 +221,8 @@ def main():
         if i % 20 == 0:
             gn = random.choice(ca3nrnsNames)
             g = nrns[gn]
-            inject_ap(g)
+            x = random.choice( alphabets_ )
+            g['SN'].apply(x)
 
 if __name__ == '__main__':
     main()
