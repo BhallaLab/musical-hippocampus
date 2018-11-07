@@ -34,7 +34,7 @@ def runApp():
 
             k = chr(event.key)
             if '0' < k < '8':
-                canvas.inject_alphabet_ca3(int(k))
+                reset = canvas.inject_alphabet_ca3(int(k))
 
 
 def main():

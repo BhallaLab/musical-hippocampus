@@ -19,16 +19,18 @@ import swc
 import cv2
 import bezier
 import random
-from arena import *
-from config import *
 import sequence
 import sound
-import threading
 import time
+from arena import *
+from config import *
 
-nrns_         = {}
-ca3nrnsNames_ = None
-ca1nrnsNames_ = None
+nrns_              = {}
+ca3nrnsNames_      = None
+ca1nrnsNames_      = None
+max_num_press_     = 20
+current_num_press_ = 0
+reset_all_         = False
 
 def smooth_line(ps):
     ps = np.array(ps)
@@ -89,9 +91,7 @@ def show_frame( img = None):
 def preprocess( g, rotate=0, shift=(0,0) ):
     # Make 2d coords to int for opencv.
     pivot = g.node[1]['coordinate']
-    #Put them into middle.
     _translate_graph(g, pivot)
-    #  assert g.node[1]['coordinate'] <= (5,5), g.node[1]['coordinate']
     _rotate_graph(g, rotate)
     _translate_graph(g, shift)
 
@@ -115,7 +115,8 @@ def plot_png_using_cv2(G, canvas_):
     global win_
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
-    cv2.circle( canvas_, pos[1], 5, int2Clr(G.node[1]['color']), -1 )
+    somaColor = int2Clr(G.graph['SeqRec']._output*128  + 0.5*G.node[1]['color'])
+    cv2.circle( canvas_, pos[1], 5, somaColor, -1 )
     for n1, n2 in G.edges():
         (x1, y1), (x2, y2) = pos[n1], pos[n2]
         cv2.line(canvas_, (x1,y1), (x2, y2)
@@ -213,8 +214,13 @@ def playback_background( g ):
 
 def inject_alphabet_ca3(x, g = None):
     global ca1nrnsNames_
+    global reset_all_
+    global max_num_press_
+    global current_num_press_
+    current_num_press_ += 1
+
     if g is None:
-        g = nrns_['ca3.%d'%x]
+        g = nrns_['ca3.%d'% alphabetToNrn_[x] ]
     inject_ap(g)
     sound.play_int(x)
 
@@ -222,11 +228,29 @@ def inject_alphabet_ca3(x, g = None):
     for k in ca1nrnsNames_:
         g = nrns_[k]
         inject_alphabet(x, g)
+        print( '\t%s' % k, g.graph['SeqRec'] )
         if g.graph['SeqRec'].output == 1:
-            print( "[INFO ] Sequence recognized: %s" % str(g.graph['SeqRec'].seq) )
             inject_ap(g)
             playback_background( g )
             g.graph['SeqRec'].reset()
+            reset_all_ = True
+
+    if current_num_press_ >= max_num_press_:
+        current_num_press_ = 0
+        reset_all_ = True
+
+    if reset_all_:
+        # remove all events from pygame.
+        pygame.event.clear()
+        print( '[INFO] Resetting all' )
+        for k in ca1nrnsNames_:
+            g = nrns_[k]
+            g.graph['SeqRec'].reset()
+
+        time.sleep(0.5)
+        sound.play_seq( [1]*10 )
+        time.sleep(3)
+        reset_all_ = False
 
 def main():
     nrns = init()
