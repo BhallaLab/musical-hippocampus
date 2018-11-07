@@ -117,13 +117,16 @@ def match_two_seq(seq, baseseq):
     d = defaultdict(list)
     for i, x in enumerate(baseseq):
         d[x].append(i)
-    seqI = [ d[x].pop() if d[x] else -1 for x in seq ]
+    seqI = [ d[x].pop(0) if d[x] else -1 for x in seq ]
+    #  print( 'x', seq, seqI )
     r = match_by_penalizing_out_of_order_element(seqI)
     return r / len(baseseq) ** 2
 
 def test( ):
-    seq1 = [1,1,3,5,4]
-    seq2 = [5,3,1,1,4]
+    #  seq1 = [1,1,3,5,4]
+    #  seq2 = [5,3,1,1,4]
+    seq1 = [4,5,1,3,1,1]
+    seq2 = [4,5,1,3,1,1]
     r = match_two_seq(seq2, seq1)
     print(seq1, seq2, r)
 

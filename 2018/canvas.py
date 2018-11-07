@@ -240,17 +240,20 @@ def inject_alphabet_ca3(x, g = None):
         reset_all_ = True
 
     if reset_all_:
-        # remove all events from pygame.
-        pygame.event.clear()
-        print( '[INFO] Resetting all' )
-        for k in ca1nrnsNames_:
-            g = nrns_[k]
-            g.graph['SeqRec'].reset()
+        reset_all()
 
-        time.sleep(0.5)
-        sound.play_seq( [1]*10 )
-        time.sleep(3)
-        reset_all_ = False
+def reset_all( delay = 1 ):
+    global reset_all_
+    global current_num_press_
+    # remove all events from pygame.
+    print( 'RESETTING' )
+    pygame.event.clear()
+    for k in ca1nrnsNames_:
+        g = nrns_[k]
+        g.graph['SeqRec'].reset()
+    reset_all_ = False
+    current_num_press_ = 0
+    time.sleep( delay )
 
 def main():
     nrns = init()

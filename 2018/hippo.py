@@ -24,6 +24,9 @@ def runApp():
         screen_.blit( surface, (0,0) )
         pygame.display.update()
 
+        if i % 20 != 0:
+            continue
+
         # handle event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -34,7 +37,9 @@ def runApp():
 
             k = chr(event.key)
             if '0' < k < '8':
-                reset = canvas.inject_alphabet_ca3(int(k))
+                canvas.inject_alphabet_ca3(int(k))
+            if k in [ 'r', 'q' ]:
+                canvas.reset_all()
 
 
 def main():
