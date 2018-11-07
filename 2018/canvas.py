@@ -22,8 +22,8 @@ import random
 import sequence
 import sound
 import time
-from arena import *
-from config import *
+import arena
+import config
 
 nrns_              = {}
 ca3nrnsNames_      = None
@@ -31,6 +31,39 @@ ca1nrnsNames_      = None
 max_num_press_     = 20
 current_num_press_ = 0
 reset_all_         = False
+note_loc_          = { }
+
+def int2Clr( x ):
+    b = int(x)
+    left = 255 - b
+    r = max(10, left//2)
+    g = max(5, left//2)
+    b = 255 - r - g
+    return (r, g, b)
+
+def add_piano( pressed = 0 ):
+    # Note that surface rotate is by 180 degree.
+    global note_loc_
+    h, w, _ = arena.canvas_.shape 
+    stripeW = w // 7
+    stripeH = 80
+    for i in range(w//stripeW):
+        color =  255 if i % 2 else 0
+        p1, p2 = (i*stripeW, h-stripeH), ((i+1)*stripeW, h-1)
+        p0 = (i*stripeW+stripeW//2, h-stripeH//2)
+        img = np.ascontiguousarray(arena.canvas_, dtype=np.uint8)
+        cv2.rectangle( img, p1, p2, int2Clr(color), cv2.FILLED)
+        cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1,
+                int2Clr(128), 2)
+        note_loc_[i+1] = (p0,p1,p2)
+    if pressed:
+        change_color(img, note_loc_[pressed])
+    arena.canvas_ = img
+
+def change_color( img, ps ):
+    p0, p1, p2 = ps
+    #  cv2.rectangle( img, p1, p2, int2Clr(color), cv2.FILLED)
+    cv2.circle( img, p0, 20, int2Clr(80), 2, -1 )
 
 def smooth_line(ps):
     ps = np.array(ps)
@@ -57,7 +90,6 @@ def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     return path
 
 def ca1Toca3( ):
-    global ca1_, ca3_
     path = schaffer_collateral()
     g = nx.path_graph(len(path), create_using=nx.DiGraph() )
     for n, p in zip(g.nodes(), path):
@@ -67,13 +99,6 @@ def ca1Toca3( ):
         g[n1][n2]['width'] = 3
     return g
 
-def int2Clr( x ):
-    b = int(x)
-    left = 255 - b
-    r = max(10, left//2)
-    g = max(5, left//2)
-    b = 255 - r - g
-    return (r, g, b)
 
 def _sub(t1, t2):
     return tuple(map(operator.sub, t1, t2))
@@ -84,7 +109,7 @@ def _add(t1, t2):
 def show_frame( img = None):
     global win_
     if img is None:
-        img = canvas_
+        img = arena.canvas_
     cv2.imshow( "NRN", img )
     cv2.waitKey(1)
 
@@ -111,15 +136,15 @@ def _translate_graph(g, p):
     for n in g.nodes():
         g.node[n]['coordinate'] = _sub(g.node[n]['coordinate'], (-x,-y))
 
-def plot_png_using_cv2(G, canvas_):
+def plot_png_using_cv2(G):
     global win_
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
     somaColor = int2Clr(G.graph['SeqRec']._output*128  + 0.5*G.node[1]['color'])
-    cv2.circle( canvas_, pos[1], 5, somaColor, -1 )
+    cv2.circle( arena.canvas_, pos[1], 5, somaColor, -1 )
     for n1, n2 in G.edges():
         (x1, y1), (x2, y2) = pos[n1], pos[n2]
-        cv2.line(canvas_, (x1,y1), (x2, y2)
+        cv2.line( arena.canvas_, (x1,y1), (x2, y2)
                 , int2Clr(G.node[n2]['color'])
                 , G[n1][n2].get('width', 1)
                 , 4
@@ -127,11 +152,8 @@ def plot_png_using_cv2(G, canvas_):
 
 def plot_graphs( ):
     global hippoImg_
-    global canvas_
     global nrns_
-    #  canvas_ = hippoImg_.copy()
-    canvas_.fill(0)
-    [plot_png_using_cv2(g, canvas_) for k, g in nrns_.items()]
+    [plot_png_using_cv2(g) for k, g in nrns_.items()]
 
 def update_using_topologicl_sorting(G, i):
     for n in reversed(list(nx.topological_sort(G))):
@@ -161,16 +183,17 @@ def inject_ap(g):
     g.node[1]['color'] = 255
 
 def create_canvas( ):
-    for i, (pos, theta, k) in enumerate(ca1_):
+    add_piano( )
+    for i, (pos, theta, k) in enumerate(config.ca1_):
         g = swc.swc2nx(k, scale=0.3)
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
         g.graph['SeqRec'] = sequence.SeqRecognizer([])
-        n1, seq = connections_[i]
+        n1, seq = config.connections_[i]
         g.graph['SeqRec'] = sequence.SeqRecognizer(seq)
         nrns_['ca1.%d'%i] = g
 
-    for i, (pos, theta, k) in enumerate(ca3_):
+    for i, (pos, theta, k) in enumerate(config.ca3_):
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
@@ -178,6 +201,7 @@ def create_canvas( ):
         g.graph['SeqRec'] = sequence.SeqRecognizer([])
         nrns_['ca3.%d'%i] = g 
         inject_ap(g)
+
 
 def update_canvas( ):
     global nrns_
@@ -192,14 +216,6 @@ def init():
     ca1nrns = { k : v for k, v in nrns_.items() if 'ca1.' in k }
     ca3nrnsNames_ = list( ca3nrns.keys() )
     ca1nrnsNames_ = list( ca1nrns.keys() )
-
-def inject_random_alphabet( ):
-    global ca3nrnsNames_
-    global nrns_
-    gn = random.choice(ca3nrnsNames_)
-    g = nrns_[gn]
-    x = random.choice( alphabets_ )
-    inject_alphabet_ca3(x, g )
 
 def inject_alphabet( x, g = None ):
     g.graph['SeqRec'].inject(x)
@@ -220,9 +236,10 @@ def inject_alphabet_ca3(x, g = None):
     current_num_press_ += 1
 
     if g is None:
-        g = nrns_['ca3.%d'% alphabetToNrn_[x] ]
+        g = nrns_['ca3.%d'% config.alphabetToNrn_[x] ]
     inject_ap(g)
     sound.play_int(x)
+    add_piano(x)
 
     # same alphabets gets injected into ca1
     for k in ca1nrnsNames_:

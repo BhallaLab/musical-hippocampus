@@ -16,7 +16,7 @@ import cv2
 args_ = None
 
 refFig_ = cv2.imread('./hippocampus-800x480.png', 1)
-alphabets_ = [1,2,3,4,5,6,7,8,9]
+alphabets_ = [1,2,3,4,5,6,7]
 ca1_ = [ 
         ((377, 129), 210, './swcs/cell1-11b-CA1.CNG.swc'),
         ((397, 125), 250, './swcs/cell1-2a-CA1.CNG.swc' ),
