@@ -24,7 +24,7 @@ pygame.mixer.init()
 
 sdir_ = os.path.dirname( __file__ )
 notes = glob.glob(os.path.join(sdir_, 'sounds/*.wav'))
-notes = { 1:'C1',2:'D1',3:'E1',4:'F1',5:'G1',6:'A1',7:'B1',8:'C1' }
+notes = { 1:'C1',2:'D1',3:'E1',4:'F1',5:'G1',6:'A1',7:'B1' }
 
 def play(note, duration = 2e-1 ):
     global player_
@@ -34,7 +34,7 @@ def play(note, duration = 2e-1 ):
     time.sleep( duration )
 
 def play_int(i):
-    play( notes[i] )
+    play( notes[i%7+1] )
 
 def play_seq( seq ):
     global notes 

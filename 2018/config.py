@@ -13,6 +13,8 @@ import sys
 import os
 import cv2
 
+args_ = None
+
 refFig_ = cv2.imread('./hippocampus-800x480.png', 1)
 alphabets_ = [1,2,3,4,5,6,7,8,9]
 ca1_ = [ 

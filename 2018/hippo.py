@@ -29,6 +29,11 @@ def runApp():
         if (i+1) % 10 != 0:
             continue
 
+        # if auto is enabled then inject random stimulus.
+        if config.args_.auto:
+            canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
+            continue
+
         # handle event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -44,12 +49,24 @@ def runApp():
                 canvas.reset_all()
 
 
-def main():
+def main( args ):
+    config.args_ = args
     runApp()
 
 if __name__ == '__main__':
+    import argparse
+    # Argument parser.
+    description = '''Hippocampus.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('--auto', '-a'
+        , required = False, default = False, action = 'store_true'
+        , help = 'Run automatically.'
+        )
+    class Args: pass 
+    args = Args()
+    parser.parse_args(namespace=args)
     try:
-        main()
+        main( args )
     except KeyboardInterrupt as e:
         pygame.quit()
     pygame.quit()
