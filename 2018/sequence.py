@@ -122,13 +122,26 @@ def match_two_seq(seq, baseseq):
     r = match_by_penalizing_out_of_order_element(seqI)
     return r / len(baseseq) ** 2
 
+def _join(seq):
+    return ''.join(map(str,seq))
+
 def test( ):
-    #  seq1 = [1,1,3,5,4]
-    #  seq2 = [5,3,1,1,4]
-    seq1 = [4,5,1,3,1,1]
-    seq2 = [4,5,1,3,1,1]
+    seq1, seq2 = [4,5,1,3,1,1], [4,5,1,3,1,1]
     r = match_two_seq(seq2, seq1)
     print(seq1, seq2, r)
+    for i in range(20):
+        random.shuffle(seq2)
+        r = match_two_seq(seq2, seq1)
+        print( ' →', _join(seq1), _join(seq2), r)
+
+    seq1, seq2 = [1,1,3,1,5,4], [1,1,3,1,5,4]
+    r = match_two_seq(seq2, seq1)
+    print(seq1, seq2, r)
+    for i in range(20):
+        random.shuffle(seq2)
+        r = match_two_seq(seq2, seq1)
+        print( ' →', _join(seq1), _join(seq2), r)
+
 
 if __name__ == '__main__':
     test()
