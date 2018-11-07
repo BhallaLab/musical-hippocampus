@@ -20,9 +20,9 @@ def runApp():
     canvas.init()
     for i in itertools.count():
         canvas.update_canvas( )
-        img = np.flipud(np.rot90(arena.canvas_,k=1))
+        img = 0.75*arena.canvas_ + 0.25*config.refFig_
+        img = np.flipud(np.rot90(img,k=1))
         s1 = pygame.surfarray.make_surface(img)
-        #  s2 = pygame.surfarray.make_surface(config.refFig_)
         screen_.blit( s1, (0,0) )
         pygame.display.update()
 
