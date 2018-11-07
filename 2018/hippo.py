@@ -10,6 +10,7 @@ import canvas
 import numpy as np
 import itertools
 import time
+import config
 
 pygame.init()
 black_ = 0, 0, 0
@@ -19,12 +20,13 @@ def runApp():
     canvas.init()
     for i in itertools.count():
         canvas.update_canvas( )
-        img = np.flipud(np.rot90(arena.canvas_,k=1))
+        img = 0.8 * arena.canvas_ + 0.2 * config.refFig_
+        img = np.flipud(np.rot90(img,k=1))
         surface = pygame.surfarray.make_surface(img)
         screen_.blit( surface, (0,0) )
         pygame.display.update()
 
-        if i % 20 != 0:
+        if (i+1) % 10 != 0:
             continue
 
         # handle event

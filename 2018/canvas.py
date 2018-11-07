@@ -228,7 +228,7 @@ def inject_alphabet_ca3(x, g = None):
     for k in ca1nrnsNames_:
         g = nrns_[k]
         inject_alphabet(x, g)
-        print( '\t%s' % k, g.graph['SeqRec'] )
+        #  print( '\t%s' % k, g.graph['SeqRec'] )
         if g.graph['SeqRec'].output == 1:
             inject_ap(g)
             playback_background( g )
@@ -254,6 +254,7 @@ def reset_all( delay = 1 ):
     reset_all_ = False
     current_num_press_ = 0
     time.sleep( delay )
+    pygame.event.clear()
 
 def main():
     nrns = init()

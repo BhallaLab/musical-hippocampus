@@ -30,12 +30,11 @@ class SeqRecognizer():
         self.threshold = thres
 
     def inject(self, x):
-        self.history.insert(0, x)
+        self.history.append(x)
         if len(self.history) < len(self.seq):
             return
         a = self.seq
-        b = self.history[:len(self.seq)]
-        s = sequence.match_two_seq(a, b)
+        s = sequence.match_two_seq(a, self.history)
         self._output = s
         self._x = x
         if self._output >= self.threshold:
@@ -135,7 +134,7 @@ def test( ):
         print( ' →', _join(seq1), _join(seq2), r)
 
     seq1, seq2 = [1,1,3,1,5,4], [1,1,3,1,5,4]
-    r = match_two_seq(seq2, seq1)
+    r = match_two_seq(seq2, list(reversed(seq1)))
     print(seq1, seq2, r)
     for i in range(20):
         random.shuffle(seq2)
