@@ -17,7 +17,6 @@ import operator
 import math
 import swc
 import cv2
-import bezier
 import random
 import sequence
 import sound
@@ -74,6 +73,14 @@ def smooth_line(ps):
     return zip(map(int,x),map(int, y))
 
 def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
+    if os.path.isfile( 'sc.txt' ):
+        # add zigzag
+        path = np.loadtxt('sc.txt')
+        path += np.random.randint(-zigzag, zigzag, size=(path.shape))
+        return path
+
+    # otherwise use bezier module. It is not available on PI.
+    import bezier
     nodes = [ (150,330), (130,312), (130,254), (100,200),
               (185,211), (308,156), (355,151), (432,158), 
               (500,158)
@@ -87,6 +94,7 @@ def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     nodes = np.asfortranarray([list(X), list(Y)], dtype=float)
     curve = bezier.Curve(nodes, degree=2)
     path  = curve.evaluate_multi(np.linspace(0, 1, segments)).T
+    np.savetxt('sc.txt', path )
     return path
 
 def ca1Toca3( ):
