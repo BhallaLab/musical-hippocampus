@@ -33,12 +33,15 @@ reset_all_         = False
 note_loc_          = { }
 
 def int2Clr( x ):
-    b = int(x)
-    left = 255 - b
-    r = max(20, left//2)
-    g = max(20, left//2)
-    b = 255 - r - g
-    return (r, g, b)
+    import matplotlib.cm as cm
+    c = [int(a*255) for a in cm.rainbow(x/255.0)]
+    return c
+    #  b = int(x)
+    #  left = 255 - b
+    #  r = max(0, left//2)
+    #  g = max(0, left//2)
+    #  b = 255 - r - g
+    #  return (r, g, b)
 
 def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
@@ -149,18 +152,14 @@ def plot_png_using_cv2(G):
                 , G[n1][n2].get('width', 1)
                 )
 
-def plot_graphs( ):
+def plot_graphs( nrns ):
     global hippoImg_
-    global nrns_
-    [plot_png_using_cv2(g) for k, g in nrns_.items()]
+    #  nrns = sorted(nrns, key=lambda g: g.node[1]['color'])
+    for g in nrns:
+        print( g.node[1]['color'], end = ' ' )
+        plot_png_using_cv2(g)
+    print()
 
-def update_using_topologicl_sorting(G, i):
-    for n in reversed(list(nx.topological_sort(G))):
-        # Get the flow from incoming.
-        nn = list(G.predecessors(n))
-        for s in nn:
-            G.node[n]['color'] = G.node[s]['color']
-        G.node[n]['color'] = 0
 
 def update(g):
     aps = g.graph['AP']
@@ -169,10 +168,11 @@ def update(g):
         c = g.node[n]['color']
         if c == 0:
             break
-        g.node[n]['color'] = c * 0.95
+        g.node[n]['color'] = c 
         for p in g.successors(n):
             g.node[p]['color'] = g.node[n]['color']
             nexts.append(p)
+        g.node[n]['color'] = 0
     g.graph['AP'] = nexts
 
 def inject_ap(g):
@@ -206,7 +206,7 @@ def create_canvas( ):
 def update_canvas( ):
     global nrns_
     [update(g) for g in nrns_.values()]
-    plot_graphs()
+    plot_graphs( nrns_.values() )
 
 def init():
     global ca3nrnsNames_
@@ -279,7 +279,7 @@ def main():
     ca3nrnsNames = list( ca3nrns.keys() )
     for i in range(1000):
         [update(g, i) for g in nrns.values()]
-        plot_graphs(nrns)
+        plot_graphs(nrns.values())
         if i % 20 == 0:
             gn = random.choice(ca3nrnsNames)
             g = nrns[gn]

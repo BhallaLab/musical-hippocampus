@@ -20,17 +20,13 @@ def runApp():
     canvas.init()
     for i in itertools.count():
         canvas.update_canvas( )
-        #img = 0.75*arena.canvas_ #+ 0.25*config.refFig_
-        img = arena.canvas_
-        #img = np.flipud(np.rot90(img,k=1))
-        #s1 = pygame.surfarray.make_surface(img)
-        #screen_.blit( s1, (0,0) )
-        #pygame.display.update()
-        cv2.imshow( "hey", img )
+        k = 0.85
+        img = k*arena.canvas_ + (1-k)*config.refFig_
+        cv2.imshow( "hey", np.uint8(img) )
         cv2.waitKey(1)
 
-        #if (i+1) % 20 != 0:
-        #    continue
+        if (i+1) % 5 != 0:
+          continue
 
         # if auto is enabled then inject random stimulus.
         if config.args_.auto:
