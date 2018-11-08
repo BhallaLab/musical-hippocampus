@@ -1,2 +1,2 @@
 all :
-	python ./hippo.py -a
+	python ./hippo.py 

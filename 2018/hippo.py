@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import print_function, division
 import pygame
 import random
 import arena
@@ -16,14 +16,25 @@ import config
 black_ = 0, 0, 0
 #screen_ = pygame.display.set_mode(arena.size)
 
+# OpenCV highgui
+def on_mouse(event, x, y, flag, params ):
+    if event == 1:
+        W = arena.canvas_.shape[1] / 7
+        note = int(x / W) + 1
+        if y > 400:
+            canvas.inject_alphabet_ca3(note)
+
+
+cv2.setMouseCallback( canvas.winName_, on_mouse )
+
+
 def runApp():
     canvas.init()
     for i in itertools.count():
         canvas.update_canvas( )
         k = 0.85
         img = k*arena.canvas_ + (1-k)*config.refFig_
-        cv2.imshow( "hey", np.uint8(img) )
-        cv2.waitKey(1)
+        canvas.show_frame(np.uint8(img))
 
         if (i+1) % 5 != 0:
           continue

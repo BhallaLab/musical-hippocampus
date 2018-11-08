@@ -30,6 +30,8 @@ max_num_press_     = 20
 current_num_press_ = 0
 reset_all_         = False
 note_loc_          = { }
+winName_           = "HIPPOCAMPUS"
+win_               = cv2.namedWindow( winName_ )
 
 def int2Clr( x ):
     import matplotlib.cm as cm
@@ -109,11 +111,10 @@ def _add(t1, t2):
     return tuple(map(operator.add, t1, t2))
 
 def show_frame( img = None):
-    global win_
     if img is None:
         img = arena.canvas_
-    cv2.imshow( "NRN", img )
-    cv2.waitKey(1)
+    cv2.imshow( winName_, img )
+    cv2.waitKey(5)
 
 def preprocess( g, rotate=0, shift=(0,0) ):
     # Make 2d coords to int for opencv.
