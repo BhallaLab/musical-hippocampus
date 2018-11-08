@@ -31,7 +31,7 @@ def play(note, duration = 2e-1 ):
     wavfile = os.path.join( sdir_, 'sounds/%s.wav' % note )
     pygame.mixer.music.load(wavfile)
     pygame.mixer.music.play()
-    time.sleep( duration )
+    #  time.sleep( duration )
 
 def play_int(i):
     play( notes[i%7+1] )
