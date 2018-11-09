@@ -19,6 +19,7 @@ import config
 import pygame.midi
 import pygame.mixer
 
+pygame.init()
 pygame.midi.init()
 pygame.mixer.init()
 
@@ -29,20 +30,28 @@ notes = { 1:'C1',2:'D1',3:'E1',4:'F1',5:'G1',6:'A1',7:'B1' }
 def play(note, duration = 2e-1 ):
     global player_
     wavfile = os.path.join( sdir_, 'sounds/%s.wav' % note )
+    if not os.path.isfile(wavfile):
+        print( "[WARN ] Note %s not found" % note )
+        return 
+    print( note, end = ',' )
     pygame.mixer.music.load(wavfile)
     pygame.mixer.music.play()
-    #  time.sleep( duration )
+    print()
 
 def play_int(i):
     play( notes[i%7+1] )
 
 def play_seq( seq ):
     global notes 
+    seq = list(seq)
+    print( "[INFO ] Playing : %s" % str(seq) )
     for i in seq:
         if not i:
             time.sleep(0.1)
         else:
             play(notes[i])
+            time.sleep(0.2)
+    time.sleep(1)
 
 def main():
     for i, seq in config.connections_:

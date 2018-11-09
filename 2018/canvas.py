@@ -78,6 +78,7 @@ def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     if os.path.isfile( 'sc.txt' ):
         # add zigzag
         path = np.loadtxt('sc.txt')
+        path = path[1:]
         path += np.random.randint(-zigzag, zigzag, size=(path.shape))
         return path
 
@@ -161,12 +162,12 @@ def plot_png_using_cv2(G):
     # write the current number and max numbers.
     txt =  '%d/%d' % (current_num_press_, max_num_press_)
     p0 = (10,10)
-    cv2.rectangle(arena.canvas_, (0,0), (50,20), int2Clr(256), -1)
-    cv2.putText(arena.canvas_, txt, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(128), 1)
+    c = 100*(current_num_press_ / max_num_press_ )
+    cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+120), -1)
+    cv2.putText(arena.canvas_, txt, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
 def plot_graphs( nrns ):
     global hippoImg_
-    #  nrns = sorted(nrns, key=lambda g: g.node[1]['color'])
     for g in nrns:
         if g.graph['active']:
             plot_png_using_cv2(g)
