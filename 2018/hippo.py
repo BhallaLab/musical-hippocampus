@@ -11,16 +11,19 @@ import numpy as np
 import itertools
 import time
 import config
+import sound
 
 black_ = 0, 0, 0
 
 # OpenCV highgui
 def on_mouse(event, x, y, flag, params ):
     if event == 1:
-        W = arena.canvas_.shape[1] / 7
+        W = arena.canvas_.shape[1] / len(sound.notes)
         note = int(x / W) + 1
         if y > 400:
             canvas.inject_alphabet_ca3(note)
+            if note == 8:
+                canvas.reset_all()
 
 
 cv2.setMouseCallback( canvas.winName_, on_mouse )

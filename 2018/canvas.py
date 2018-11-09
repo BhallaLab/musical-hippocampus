@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, division
 
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"
@@ -54,7 +54,7 @@ def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
     global note_loc_
     h, w, _ = arena.canvas_.shape 
-    stripeW = w // 7
+    stripeW = math.floor(w/len(sound.notes))
     stripeH = 80
     for i in range(w//stripeW):
         color =  255 if i % 2 else 0
@@ -62,8 +62,7 @@ def add_piano( pressed = 0 ):
         p0 = (i*stripeW+stripeW//2, h-stripeH//2)
         img = np.ascontiguousarray(arena.canvas_, dtype=np.uint8)
         cv2.rectangle( img, p1, p2, int2Clr(color), -1)
-        cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1,
-                int2Clr(128), 2)
+        cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1, int2Clr(128), 2)
         note_loc_[i+1] = (p0,p1,p2)
     if pressed:
         change_color(img, note_loc_[pressed])
@@ -233,6 +232,7 @@ def init():
     ca1nrns = { k : v for k, v in nrns_.items() if 'ca1.' in k }
     ca3nrnsNames_ = list( ca3nrns.keys() )
     ca1nrnsNames_ = list( ca1nrns.keys() )
+    add_piano()
 
 def inject_alphabet( x, g = None ):
     g.graph['SeqRec'].inject(x)
