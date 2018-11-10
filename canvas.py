@@ -32,6 +32,7 @@ reset_all_         = False
 note_loc_          = { }
 winName_           = "HIPPOCAMPUS"
 title_             = ''
+match_arduino_     = ''
 
 win_               = cv2.namedWindow( winName_ )
 try:
@@ -164,7 +165,7 @@ def plot_png_using_cv2(G, every = 1):
 
     # write the current number and max numbers.
     txt =  '%d/%d' % (current_num_press_, max_num_press_)
-    title = '%s: %s' % (txt, title_)
+    title = '%s: %s' % (txt, match_arduino_)
     p0 = (10,10)
     c = 50*(current_num_press_ / max_num_press_ )
     cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+230), -1)
@@ -206,7 +207,7 @@ def create_canvas( ):
     add_piano( )
     for i, (pos, theta, k) in enumerate(config.ca1_):
         g = swc.swc2nx(k, scale=0.1 )
-        print( g.number_of_nodes() )
+        #  print( g.number_of_nodes() )
         preprocess( g, rotate=theta, shift=pos )
         inject_ap(g)
         g.graph['SeqRec'] = sequence.SeqRecognizer([])
@@ -283,13 +284,12 @@ def inject_alphabet_ca3(x, g = None):
         reset_all_ = True
 
     if reset_all_:
-        reset_all()
+        resetAll()
 
-def reset_all( delay = 1 ):
+def resetAll( delay = 1 ):
     global reset_all_
     global current_num_press_
     global title_
-    print( 'RESETTING' )
     for k in ca1nrnsNames_:
         g = nrns_[k]
         g.graph['SeqRec'].reset()
@@ -312,6 +312,10 @@ def main():
         
         cv2.imshow( 'test', arena.canvas_ )
         cv2.waitKey(1)
+
+def progressFromArduino( progress ):
+    global match_arduino_
+    match_arduino_ = progress
 
 if __name__ == '__main__':
     main()

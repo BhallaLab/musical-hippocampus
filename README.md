@@ -5,6 +5,8 @@
 On an Debian image with Raspberry support for python installed, we need the
 followings as well::
 
-- libportaudio-dev 
-- pip install pyaudio
-- pip install pyserial 
+
+# Generate audio samples
+
+Execute `./scripts/generate_sound.py` and move the generated wav files to
+`./wav` directory.

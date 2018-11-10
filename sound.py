@@ -33,10 +33,8 @@ def play(note, duration = 2e-1 ):
     if not os.path.isfile(wavfile):
         print( "[WARN ] Note %s not found" % note )
         return 
-    print( note, end = ',' )
     pygame.mixer.music.load(wavfile)
     pygame.mixer.music.play()
-    print()
 
 def play_int(i):
     play( notes[i%7+1] )
@@ -44,7 +42,6 @@ def play_int(i):
 def play_seq( seq ):
     global notes 
     seq = list(seq)
-    print( "[INFO ] Playing : %s" % str(seq) )
     for i in seq:
         if not i:
             time.sleep(0.1)

@@ -130,7 +130,7 @@ void sendToneCommandToSerial( int buttonId )
 
 void resetMatchingResult( bool silent )
 {
-    Serial.println( "Reset sequence matching results" );
+    Serial.println( "#R reset all." );
     n_button_press_ = 0;
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
     {
@@ -141,10 +141,8 @@ void resetMatchingResult( bool silent )
     if( ! silent )
     {
         Serial.println( "Playing reset tone" );
-        //playNote( 8, 1000 );
         sendToneCommandToSerial( 8 );
     }
-
     resetAllLEDs( );
 }
 
@@ -164,14 +162,11 @@ void setup()
         pinMode( buttonList_[i], INPUT_PULLUP );
     }
 
-        
-
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
         running_index_[i] = 0;
 
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
-
 
     /*-----------------------------------------------------------------------------
      *  Now setup LEDs 
@@ -341,7 +336,6 @@ void matchSequences( void )
     n_button_press_ += 1;
     // At any time, the current button pressed is at input_[0]
     int currVal = input_[0];
-
     bool noneMatch = true;
     //Serial.print( "Running index ");
     //Serial.println( running_index_ );
@@ -362,6 +356,15 @@ void matchSequences( void )
                 matched_seq_[i] = 0.0;
         }
     }
+
+    // Print progress of each sequence. This could be read by PI.
+    Serial.print( "#P" );
+    for( size_t i = 0; i < NUMBER_OF_SEQ; i++ )
+    {
+        Serial.print( matched_seq_[i] );
+        Serial.print( ',' );
+    }
+    Serial.print('\n');
 
     // Use this array to create an led progres bar.
     progressBar( matched_seq_, NUMBER_OF_SEQ );
@@ -399,8 +402,8 @@ void matchSequences( void )
                     matched_seq_[i] / running_index_[i] >= 0.7 )
             {
                 // i'th sequence is matched.
-                Serial.print( "\n|| Sequence matched." );
-                Serial.println( i );
+                // Serial.print( ">> Sequence matched." );
+                // Serial.println( i );
                 playSequece( i );
                 // Reset everything
                 resetMatchingResult( true );
@@ -487,7 +490,6 @@ void loop()
         num_of_buttons_pressed_ += 1;
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
-        //playNote( buttonId );
         matchSequences();
     }
 #else

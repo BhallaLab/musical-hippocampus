@@ -12,6 +12,8 @@ import itertools
 import time
 import config
 import sound
+import multiprocessing 
+import arduino_client
 
 black_ = 0, 0, 0
 
@@ -33,7 +35,7 @@ def on_mouse(event, x, y, flag, params ):
 
 cv2.setMouseCallback( canvas.winName_, on_mouse )
 
-def runApp():
+def runApp(q):
     global timeWithoutActivity_, timeout_
     canvas.init()
     t = 0
@@ -49,14 +51,35 @@ def runApp():
         timeWithoutActivity_ += dt
         if i % 10 == 0:
             print( "[INFO ] Current FPS %.2f" % (i/t) )
-        
+
+        # check for arduino input.
+        if not q.empty():
+            line = q.get()
+            if  len(line) < 2:
+                continue
+            if line[:2] == '#B':
+                canvas.inject_alphabet_ca3(1+int(line[2:]))
+                timeWithoutActivity_ = 0
+            elif line[:2] == '#P':
+                progress = line[3:]
+                canvas.progressFromArduino(progress)
+            elif line[:2] == '#R':
+                print( 'Arduino said reset everything.' )
+                canvas.resetAll()
+
         # if auto is enabled then inject random stimulus.
         if timeWithoutActivity_ > timeout_:
             canvas.inject_alphabet_ca3( random.choice(config.alphabets_))
 
 def main( args ):
     config.args_ = args
-    runApp()
+
+    # Launch the arduino client in a separate process.
+    q = multiprocessing.Queue()
+    p = multiprocessing.Process( target=arduino_client.main, args=(q,))
+    p.start()
+    runApp(q)
+    p.join()
 
 if __name__ == '__main__':
     import argparse
@@ -69,5 +92,4 @@ if __name__ == '__main__':
     try:
         main( args )
     except KeyboardInterrupt as e:
-        pygame.quit()
-    pygame.quit()
+        pass
