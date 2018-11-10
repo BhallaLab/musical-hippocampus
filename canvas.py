@@ -22,6 +22,7 @@ import play
 import time
 import arena
 import config
+import matplotlib.cm as cm
 
 nrns_              = {}
 ca3nrnsNames_      = None
@@ -41,16 +42,17 @@ except Exception as e:
     # Older version
     cv2.setWindowProperty(winName_, cv2.WND_PROP_FULLSCREEN, cv2.cv.CV_WINDOW_FULLSCREEN)
 
+def int2Clr2(x):
+    b = int(x)
+    left = 255 - b
+    r = max(0, left//2)
+    g = max(0, left//2)
+    b = 255 - r - g
+    return (r, g, b)
+
 def int2Clr( x ):
-    import matplotlib.cm as cm
     c = [int(a*255) for a in cm.rainbow(x/255.0)]
     return c
-    #  b = int(x)
-    #  left = 255 - b
-    #  r = max(0, left//2)
-    #  g = max(0, left//2)
-    #  b = 255 - r - g
-    #  return (r, g, b)
 
 def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
@@ -82,7 +84,9 @@ def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
         path = path[1:]
         path += np.random.randint(-zigzag, zigzag, size=(path.shape))
         return path
+    return schaffer_collateral_bezier(segments, zigzag, origin)
 
+def schaffer_collateral_bezier( segments=10, zigzag=10, origin=None):
     # otherwise use bezier module. It is not available on PI.
     import bezier
     nodes = [ (150,330), (130,312), (130,254), (100,200),
@@ -171,12 +175,19 @@ def plot_png_using_cv2(G, every = 1):
     cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+230), -1)
     cv2.putText(arena.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
-def plot_graphs( nrns, every = 1 ):
+    # plot the progress bar.
+    if match_arduino_:
+        o = 0
+        p = 100 * max([float(x) for x in match_arduino_.split(',') if x.strip()])
+        cv2.rectangle( arena.canvas_, (o,10), (o+int(p), 20), int2Clr(0), -1 ) 
+
+
+def plot_graphs( every = 1 ):
     global hippoImg_
-    for g in nrns:
+    global nrns_
+    for g in nrns_.values():
         if g.graph['active']:
             plot_png_using_cv2(g, every)
-
 
 def update(g):
     aps = g.graph['AP']
@@ -224,11 +235,14 @@ def create_canvas( ):
         nrns_['ca3.%d'%i] = g 
         inject_ap(g)
 
+def update_graphs():
+    global nrns_
+    [update(g) for g in nrns_.values()]
 
 def update_canvas( ):
     global nrns_
-    [update(g) for g in nrns_.values()]
-    plot_graphs( nrns_.values(), 1 )
+    update_graphs()
+    plot_graphs( )
 
 def init():
     global ca3nrnsNames_
@@ -291,6 +305,7 @@ def resetAll( delay = 1 ):
     global reset_all_
     global current_num_press_
     global title_
+    init()
     for k in ca1nrnsNames_:
         g = nrns_[k]
         g.graph['SeqRec'].reset()
@@ -304,7 +319,7 @@ def main():
     ca3nrns = { k : v for k, v in nrns_.items() if 'ca3' in k }
     for i in range(1000):
         [update(g) for g in nrns_.values()]
-        plot_graphs(nrns_.values())
+        plot_graphs( )
         if i % 10 == 0:
             gn = random.choice(ca3nrnsNames_)
             g = nrns_[gn]

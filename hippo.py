@@ -63,8 +63,10 @@ def runApp(q):
     t = 0
     for i in itertools.count():
         t0 = time.time()
+        canvas.update_graphs()
         if i % 2 == 0:
-            canvas.update_canvas( )
+            canvas.plot_graphs()
+
         k = 0.85
         img = k*arena.canvas_ + (1-k)*config.refFig_
         canvas.show_frame(np.uint8(img))
@@ -83,7 +85,6 @@ def runApp(q):
 
 def main( args ):
     config.args_ = args
-
     # Launch the arduino client in a separate process.
     q = multiprocessing.Queue()
     p = multiprocessing.Process( target=arduino_client.main, args=(q,))
