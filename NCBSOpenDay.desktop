@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=NCBSOpenDay
-Exec=/home/pi/Work/ncbs-open-day/2018/hippo.py
-Icon=/home/pi/Work/ncbs-open-day/2018/hippo.py
+Exec=/home/pi/Work/ncbs-open-day/hippo.py
+Icon=/home/pi/Work/ncbs-open-day/hippo.py
 Categories=Electronics;Development
-Path=/home/pi/Work/ncbs-open-day/2018/
+Path=/home/pi/Work/ncbs-open-day
 Terminal=true
