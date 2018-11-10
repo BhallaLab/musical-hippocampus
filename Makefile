@@ -14,7 +14,10 @@ ARDUINO_DIR       =  /usr/share/arduino
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
-MCU 		 =  atmega328p
+BOARD_TAG    =  mega2560
+
+# MCU, optional but set it anyway.
+#MCU 		 =  atmega2560
 
 ### MONITOR_BAUDRATE
 ### It must be set to Serial baudrate value you are using.
@@ -22,11 +25,11 @@ MONITOR_BAUDRATE  = 19200
 
 ### CFLAGS_STD
 ### Set the C standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cflags_std)
-CFLAGS_STD        = -std=gnu11 
+CFLAGS_STD        = 
 
 ### CXXFLAGS_STD
 ### Set the C++ standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cxxflags_std)
-CXXFLAGS_STD        = -std=gnu11 
+CXXFLAGS_STD        = 
 
 ### CXXFLAGS
 ### Flags you might want to set for debugging purpose. Comment to stop.

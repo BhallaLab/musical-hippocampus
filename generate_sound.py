@@ -1,4 +1,8 @@
 import pysynth as ps
-test = (('c', 4), ('e', 4), ('g', 4),
-                ('c5', -2), ('e6', 8), ('d#6', 2))
-ps.make_wav(test, fn = "test.wav")
+
+freqs = ps.getfreq()
+notes = freqs[0].keys()
+for n in notes:
+    outfile = 'wav/%s.wav' % n
+    ps.make_wav( ((n, 4),), fn=outfile)
+    print( 'Wrote note %s to %s' %(n, outfile) )

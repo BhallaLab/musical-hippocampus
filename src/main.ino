@@ -38,9 +38,8 @@ int wrongMatch_ = 0;
 
 // Length of sequences.
 int seq_length_[NUMBER_OF_SEQ] = { 
-    SEQ1_LEN, SEQ2_LEN, SEQ3_LEN 
-        , SEQ4_LEN, SEQ5_LEN, SEQ6_LEN
-};
+    SEQ1_LEN, SEQ2_LEN, SEQ3_LEN, SEQ4_LEN, SEQ5_LEN, SEQ6_LEN
+    };
 
 int seq1[SEQ1_LEN]   = { 3, 3, 3, 3, 3, 3, 3, 5, 0, 2, 3 };
 double delay1[SEQ1_LEN] = { 1, 1, 2, 1, 1, 2, 1, 3, 1, 1, 1 };
@@ -61,8 +60,7 @@ int seq6[SEQ6_LEN]   = { 3, 2, 0, 3, 2, 0};
 double delay6[SEQ6_LEN] = { 1, 1, 2, 1, 1, 1};
 
 int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
-double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4
-    , delay5, delay6 };
+double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4, delay5, delay6 };
 
 #define THRESHOLD_FOR_BUTTON_PRESS  50
 
@@ -97,12 +95,10 @@ int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 #define BUZZER_PIN  9
 
 // For each button assign a tone.
-int buttonTones_[ ] = { 
-    NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5
-        , NOTE_G5, NOTE_A5, NOTE_B5, NOTE_A1
-};
+int buttonTones_[ ] = { NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5, NOTE_G5
+    , NOTE_A5, NOTE_B5, NOTE_A1 };
 
-
+const char* buttonTonesStr_[] = { "c5","c#5","d5","e5","f#5","g5","a5","b5","a1" };
 
 /**
  * @brief Input from button is stored here.
@@ -121,7 +117,15 @@ void playNote( int buttonId, long duration = 0 )
 {
     if( duration == 0 )
         duration = NOTE_DURATION;
+
     tone( BUZZER_PIN, buttonTones_[buttonId], duration );
+}
+
+void sendToneCommandToSerial( int buttonId )
+{
+    // Write to serial so that serial reader can process this command.
+    Serial.print( "#T" ); // #T means play tone.
+    Serial.println( buttonTonesStr_[buttonId] );
 }
 
 void resetMatchingResult( bool silent )
@@ -137,7 +141,8 @@ void resetMatchingResult( bool silent )
     if( ! silent )
     {
         Serial.println( "Playing reset tone" );
-        playNote( 8, 1000 );
+        //playNote( 8, 1000 );
+        sendToneCommandToSerial( 8 );
     }
 
     resetAllLEDs( );
@@ -153,7 +158,13 @@ void setup()
 
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
-        pinMode( buttonList_[i], INPUT );
+    {
+        // i.e. by default these pins are high. When a button is pressed, they
+        // go to low.
+        pinMode( buttonList_[i], INPUT_PULLUP );
+    }
+
+        
 
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
         running_index_[i] = 0;
@@ -197,12 +208,14 @@ unsigned long readInput( void )
     unsigned long sum = 0;
     for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
-        int val = analogRead( buttonList_[i] );
+        int val = digitalRead( buttonList_[i] );
         sum = sum + pow(4, i) * val;
-        //Serial.println( val );
+        Serial.print( val );
+        Serial.print( ',' );
         input_[i] = val; 
         delay(READ_DELAY);
     }
+    Serial.println( ' ' );
     return sum;
 }
 
@@ -219,17 +232,17 @@ int whichButtonIsPressed( void )
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
         delay(READ_DELAY);
-        val = analogRead( buttonList_[i] );
-        if( val >= THRESHOLD_FOR_BUTTON_PRESS )
+        val = digitalRead( buttonList_[i] );
+
+        if(val == 0)
         {
             // Now wait of button release.
             // Wait for 500 ms for button release else continue.
             for (size_t ii = 0; ii < 500 / READ_DELAY; ii++) 
             {
                 delay( READ_DELAY );
-                val = analogRead( buttonList_[i] );
-
-                if( val < THRESHOLD_FOR_BUTTON_PRESS )
+                val = digitalRead( buttonList_[i] );
+                if( val == 1 )
                     return i;
             }
         }
@@ -316,7 +329,8 @@ void playSequece( int seqid )
     delay( 1000 );
     for (size_t i = 0; i < seqLength; i++) 
     {
-        playNote( seq[i], duration );
+        //playNote( seq[i], duration );
+        sendToneCommandToSerial( seq[i] );
         delay( delays_[seqid][i] * duration );
     }
     delay( 1000 );
@@ -403,7 +417,7 @@ void matchSequences( void )
 /**
  * @brief Does the testing.
  */
-void test( void )
+void test_over_serial( void )
 {
     // Read from serial port the number of button.
     if( Serial.available() > 0 )
@@ -420,34 +434,43 @@ void test( void )
             addInput( buttonId );
             matchSequences();
         }
-
     }
 }
+
+void test( void )
+{
+    int nB = whichButtonIsPressed();
+    if( nB > -1 )
+    {
+        Serial.print( "Button pressed: " );
+        Serial.println( nB );
+    }
+}
+
 
 // the loop routine runs over and over again forever:
 void loop() 
 {
+#if 1
     int buttonId = whichButtonIsPressed( );
-    if( buttonId >= 0 )
+    if( buttonId > -1 )
     {
+        // Write the button value. Prefix this line with #B where # means
+        // starting of a line which serial port reader should process and B
+        // stands for Button pressed followed by button number.
+        Serial.print( "#B" );
+        Serial.println( buttonId );
+        sendToneCommandToSerial( buttonId );
         lighupAxon( buttonId );
-        //Serial.print( "Button pressed : " );
-        //Serial.println( buttonId );
-        //Serial.println( num_of_buttons_pressed_ );
         num_of_buttons_pressed_ += 1;
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
-        playNote( buttonId );
+        //playNote( buttonId );
         matchSequences();
     }
-
-    // Send a simple pixel chase in...
-    //colorChase(strip.Color(127,   0,   0), 50); // Red
-    //colorChase(strip.Color(127, 127,   0), 50); // Yellow
-    //colorChase(strip.Color(  0, 127,   0), 50); // Green
-    //colorChase(strip.Color(  0, 127, 127), 50); // Cyan
-    //colorChase(strip.Color(  0,   0, 127), 50); // Blue
-    //colorChase(strip.Color(127,   0, 127), 50); // Violet
-
-    //test( );
+#else
+    test( );
+#endif
 }
+
+
