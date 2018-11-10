@@ -4,7 +4,6 @@
 from __future__ import print_function, division
 import pygame
 import random
-import arena
 import cv2
 import canvas
 import numpy as np
@@ -14,6 +13,7 @@ import config
 import play
 import multiprocessing 
 import arduino_client
+import config
 
 black_ = 0, 0, 0
 
@@ -26,7 +26,7 @@ def on_mouse(event, x, y, flag, params ):
     global timeWithoutActivity_
     if event == 1:
         timeWithoutActivity_ = 0
-        W = arena.canvas_.shape[1] / config.num_notes_
+        W = config.canvas_.shape[1] / config.num_notes_
         note = int(x / W) + 1
         if y > 400:
             canvas.inject_alphabet_ca3(note, do_play = True)
@@ -68,7 +68,8 @@ def runApp(q):
             canvas.plot_graphs()
 
         k = 0.85
-        img = k*arena.canvas_ + (1-k)*config.refFig_
+        #  img = k*config.canvas_ + (1-k)*config.backgroundImg_
+        img = config.canvas_
         canvas.show_frame(np.uint8(img))
         dt = time.time() - t0
         t += dt

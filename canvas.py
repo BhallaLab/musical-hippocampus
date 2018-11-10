@@ -20,7 +20,6 @@ import random
 import sequence
 import play
 import time
-import arena
 import config
 import matplotlib.cm as cm
 
@@ -57,20 +56,20 @@ def int2Clr( x ):
 def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
     global note_loc_
-    h, w, _ = arena.canvas_.shape 
+    h, w, _ = config.canvas_.shape 
     stripeW = int(w/config.num_notes_)
-    stripeH = 80
+    stripeH = int(80 * config.sh_)
     for i in range(w//stripeW):
         color =  255 if i % 2 else 0
         p1, p2 = (i*stripeW, h-stripeH), ((i+1)*stripeW, h-1)
         p0 = (i*stripeW+stripeW//2, h-stripeH//2)
-        img = np.ascontiguousarray(arena.canvas_, dtype=np.uint8)
+        img = np.ascontiguousarray(config.canvas_, dtype=np.uint8)
         cv2.rectangle( img, p1, p2, int2Clr(color), -1)
         cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1, int2Clr(128), 2)
         note_loc_[i+1] = (p0,p1,p2)
     if pressed:
         change_color(img, note_loc_[pressed])
-    arena.canvas_ = img
+    config.canvas_ = img
 
 def change_color( img, ps ):
     p0, p1, p2 = ps
@@ -81,6 +80,7 @@ def schaffer_collateral( segments = 10, zigzag = 0, origin = None ):
     if os.path.isfile( 'sc.txt' ):
         # add zigzag
         path = np.loadtxt('sc.txt')
+        path = np.multiply(path, [config.sw_, config.sh_])
         path = path[1:]
         path += np.random.randint(-zigzag, zigzag, size=(path.shape))
         return path
@@ -122,11 +122,13 @@ def _sub(t1, t2):
 def _add(t1, t2):
     return tuple(map(operator.add, t1, t2))
 
-def show_frame( img = None):
-    if img is None:
-        img = arena.canvas_
-    cv2.imshow( winName_, img )
-    cv2.waitKey(5)
+def show_frame( img, background = True):
+    img = cv2.resize(config.canvas_, (config.w_, config.h_))
+    if background:
+        k = 0.8
+        img = k * img + (1-k) * config.backgroundImg_
+    cv2.imshow( winName_, np.uint8(img) )
+    cv2.waitKey(1)
 
 def preprocess( g, rotate=0, shift=(0,0) ):
     # Make 2d coords to int for opencv.
@@ -157,12 +159,12 @@ def plot_png_using_cv2(G, every = 1):
     pos = nx.get_node_attributes(G, 'coordinate' )
     # draw the soma.
     somaColor = int2Clr(G.graph['SeqRec']._output*128  + 0.5*G.node[1]['color'])
-    cv2.circle( arena.canvas_, pos[1], 5, somaColor, -1 )
+    cv2.circle( config.canvas_, pos[1], 5, somaColor, -1 )
     for i, (n1, n2) in enumerate(G.edges()):
         if i % every != 0:
             continue
         (x1, y1), (x2, y2) = pos[n1], pos[n2]
-        cv2.line( arena.canvas_, (x1,y1), (x2, y2)
+        cv2.line( config.canvas_, (x1,y1), (x2, y2)
                 , int2Clr(G.node[n2]['color'])
                 , G[n1][n2].get('width', 1)
                 )
@@ -172,14 +174,14 @@ def plot_png_using_cv2(G, every = 1):
     title = '%s: %s' % (txt, match_arduino_)
     p0 = (10,10)
     c = 50*(current_num_press_ / max_num_press_ )
-    cv2.rectangle(arena.canvas_, (0,0), (arena.w_,20), int2Clr(c+230), -1)
-    cv2.putText(arena.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
+    cv2.rectangle(config.canvas_, (0,0), (config.w_,20), int2Clr(c+230), -1)
+    cv2.putText(config.canvas_, title, (10,10),  cv2.FONT_HERSHEY_SIMPLEX, 0.4, int2Clr(0), 1)
 
     # plot the progress bar.
     if match_arduino_:
         o = 0
         p = 100 * max([float(x) for x in match_arduino_.split(',') if x.strip()])
-        cv2.rectangle( arena.canvas_, (o,10), (o+int(p), 20), int2Clr(0), -1 ) 
+        cv2.rectangle( config.canvas_, (o,10), (o+int(p), 20), int2Clr(0), -1 ) 
 
 
 def plot_graphs( every = 1 ):
@@ -217,6 +219,7 @@ def inject_ap(g):
 def create_canvas( ):
     add_piano( )
     for i, (pos, theta, k) in enumerate(config.ca1_):
+        pos = tuple(int(x) for x in pos)
         g = swc.swc2nx(k, scale=0.1 )
         #  print( g.number_of_nodes() )
         preprocess( g, rotate=theta, shift=pos )
@@ -227,6 +230,7 @@ def create_canvas( ):
         nrns_['ca1.%d'%i] = g
 
     for i, (pos, theta, k) in enumerate(config.ca3_):
+        pos = tuple(int(x) for x in pos)
         g = swc.swc2nx(k, scale=0.1)
         preprocess( g, rotate=theta, shift=pos )
         scPath = schaffer_collateral( zigzag=4, origin= g.node[1]['coordinate'] )
@@ -326,7 +330,7 @@ def main():
             x = random.choice( config.alphabets_ )
             inject_alphabet_ca3( x )
         
-        cv2.imshow( 'test', arena.canvas_ )
+        cv2.imshow( 'test', config.canvas_ )
         cv2.waitKey(1)
 
 def progressFromArduino( progress ):

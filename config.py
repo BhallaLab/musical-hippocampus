@@ -13,30 +13,37 @@ import sys
 import os
 import cv2
 import numpy as np
-import arena
 
 args_ = None
+sdir_       = os.path.dirname( __file__ )
 
-refFig_ = cv2.resize( cv2.imread('./hippocampus-800x480.png', 1)
-            ,(arena.w_, arena.h_)
-            )
+# scale the arena by this factor. To make computation faster. After computation
+# is done, we rescale the image back to its original size.
+h_, w_      = 480, 800
+sh_, sw_    = 0.75, 0.75
+
+background_ = 0
+canvas_     = np.zeros(shape=(int(sh_*h_),int(sw_*w_),3)) + background_
+
+# DO not rescale the background. We can add them later.
+backgroundImg_ = cv2.resize( cv2.imread('./hippocampus-800x480.png', 1),(w_, h_))
 
 alphabets_ = [1,2,3,4,5,6,7]
 ca1_ = [ 
-        ((377, 129), 210, './swcs/cell1-11b-CA1.CNG.swc'),
-        ((397, 125), 250, './swcs/cell1-2a-CA1.CNG.swc' ),
-        ((414, 123), -120,  './swcs/cell1-3-CA1.CNG.swc' ),
-        ((430, 124), 60, './swcs/cell1-3a-CA1.CNG.swc'  ),
-        ((456, 120), -30,'./swcs/cell1-5b-CA1.CNG.swc'  ),
+        ((sw_*377, sh_*129), 210, './swcs/cell1-11b-CA1.CNG.swc'),
+        ((sw_*397, sh_*125), 250, './swcs/cell1-2a-CA1.CNG.swc' ),
+        ((sw_*414, sh_*123), -120,  './swcs/cell1-3-CA1.CNG.swc' ),
+        ((sw_*430, sh_*124), 60, './swcs/cell1-3a-CA1.CNG.swc'  ),
+        ((sw_*456, sh_*120), -30,'./swcs/cell1-5b-CA1.CNG.swc'  ),
         ]
 
 ca3_ = [ 
-        ((165, 320), -90, './swcs/cell1-CA3.CNG.swc'    ),
-        ((158, 308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
-        ((153, 289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((153, 275), 90, './swcs/cell13-CA3.CNG.swc'   ),
-        ((153, 269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
-        ((151, 251), -60, './swcs/cell1-CA3.CNG.swc'    ),
+        ((sw_*165, sh_*320), -90, './swcs/cell1-CA3.CNG.swc'    ),
+        ((sw_*158, sh_*308), -150, './swcs/cell1-3a-CA3.CNG.swc' ),
+        ((sw_*153, sh_*289),  -30, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((sw_*153, sh_*275), 90, './swcs/cell13-CA3.CNG.swc'   ),
+        ((sw_*153, sh_*269), 0, './swcs/cell1-8b-CA3.CNG.swc' ),
+        ((sw_*151, sh_*251), -60, './swcs/cell1-CA3.CNG.swc'    ),
         ]
 
 # Assign sequences to each neuron.
@@ -56,4 +63,3 @@ notes = ["c5","c#5","d5","e5","f#5","g5","a5","b5","a1" ];
 notes_ = dict( zip(range(1,len(notes)), notes) )
 
 num_notes_ = len(notes_)
-
