@@ -26,7 +26,7 @@ def on_mouse(event, x, y, flag, params ):
     global timeWithoutActivity_
     if event == 1:
         timeWithoutActivity_ = 0
-        W = config.canvas_.shape[1] / config.num_notes_
+        W = config.w_ / config.num_notes_
         note = int(x / W) + 1
         if y > 400:
             canvas.inject_alphabet_ca3(note, do_play = True)
