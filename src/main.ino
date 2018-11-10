@@ -447,11 +447,33 @@ void test( void )
     }
 }
 
+void readCommandFromSerial( void )
+{
+    //Serial.setTimeout( 100 );
+    if( Serial.available() )
+    {
+        if( Serial.read() == 35 )  // 35 is #
+        {
+            char c = Serial.read(); // Thats command just after #
+            if( c == 'R' )
+            {
+                Serial.println( ">> RESET BOARD" );
+                resetMatchingResult( false );
+            }
+            else
+                Serial.println( ">> WARN: Unknown command " + String(c) );
+            String arg = Serial.readString();
+        }
+    }
+    //Serial.setTimeout( 1000 );
+}
+
 
 // the loop routine runs over and over again forever:
 void loop() 
 {
 #if 1
+    readCommandFromSerial( );
     int buttonId = whichButtonIsPressed( );
     if( buttonId > -1 )
     {
