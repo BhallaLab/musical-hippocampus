@@ -103,7 +103,7 @@ const char* buttonTonesStr_[] = { "c5","c#5","d5","e5","f#5","g5","a5","b5","a1"
 /**
  * @brief Input from button is stored here.
  */
-int input_[3];
+int input_[NUMBER_OF_BUTTONS] = {};
 
 int num_of_buttons_pressed_ = 0;
 
@@ -130,7 +130,7 @@ void sendToneCommandToSerial( int buttonId )
 
 void resetMatchingResult( bool silent )
 {
-    Serial.println( "#R reset all." );
+    Serial.println( "\n#R reset all." );
     n_button_press_ = 0;
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
     {
@@ -139,10 +139,8 @@ void resetMatchingResult( bool silent )
     }
 
     if( ! silent )
-    {
-        Serial.println( "Playing reset tone" );
         sendToneCommandToSerial( 8 );
-    }
+
     resetAllLEDs( );
 }
 
@@ -295,7 +293,7 @@ void printIArray( int* array, size_t size)
  *
  * @return 
  */
-double maxInDArr( double* array, int arrayLen )
+double maxInDArr( double* array, size_t arrayLen )
 {
     double maximum = 0.0;
     for (size_t i = 0; i < arrayLen; i++) 
@@ -304,7 +302,7 @@ double maxInDArr( double* array, int arrayLen )
     return maximum;
 }
 
-int maxInIArr( int* array, int arrayLen )
+int maxInIArr( int* array, size_t arrayLen )
 {
     int maximum = 0.0;
     for (size_t i = 0; i < arrayLen; i++) 
@@ -317,7 +315,7 @@ void playSequece( int seqid )
 {
     // Play sequence with id seq
     int* seq = sequences_[ seqid ];
-    int seqLength = seq_length_[ seqid ];
+    size_t seqLength = seq_length_[ seqid ];
 
     int duration = 300;
 
@@ -379,14 +377,13 @@ void matchSequences( void )
      */
     if( noneMatch )
     {
-        Serial.print('x');
         wrongMatch_ += 1;
         if( wrongMatch_ > 5 )
         {
             resetMatchingResult( false );
             wrongMatch_ = 0;
         }
-        int maxRunningIndex = maxInIArr( running_index_, NUMBER_OF_SEQ);
+
         if( n_button_press_ > 2 * MAX_SEQUENCE_LENGTH && 
                  maxInDArr( matched_seq_, NUMBER_OF_SEQ ) < MIN_SEQUENCE_LENGTH )
         {
@@ -412,7 +409,7 @@ void matchSequences( void )
         }
     }
 
-    printArray( matched_seq_, NUMBER_OF_SEQ);
+    // printArray( matched_seq_, NUMBER_OF_SEQ);
     //printIArray( running_index_, NUMBER_OF_SEQ);
     Serial.print( '\n' );
 }

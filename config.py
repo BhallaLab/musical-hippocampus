@@ -51,3 +51,9 @@ connections_ = [
         ]
 
 alphabetToNrn_ = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:0, 6:1, 7:2, 8:3, 9:4 }
+
+notes = ["c5","c#5","d5","e5","f#5","g5","a5","b5","a1" ];
+notes_ = dict( zip(range(1,len(notes)), notes) )
+
+num_notes_ = len(notes_)
+

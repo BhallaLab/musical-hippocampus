@@ -18,7 +18,7 @@ import swc
 import cv2
 import random
 import sequence
-import sound
+import play
 import time
 import arena
 import config
@@ -56,7 +56,7 @@ def add_piano( pressed = 0 ):
     # Note that surface rotate is by 180 degree.
     global note_loc_
     h, w, _ = arena.canvas_.shape 
-    stripeW = int(w/len(sound.notes))
+    stripeW = int(w/config.num_notes_)
     stripeH = 80
     for i in range(w//stripeW):
         color =  255 if i % 2 else 0
@@ -240,18 +240,18 @@ def init():
     ca1nrnsNames_ = list( ca1nrns.keys() )
     add_piano()
 
-def inject_alphabet( x, g = None ):
-    g.graph['SeqRec'].inject(x)
-
-def playback(g):
-    sound.play_seq( g.graph['SeqRec'].seq )
+def inject_alphabet( x, g, do_play=False):
+    # Arduino has sequence recognizer.
+    #  g.graph['SeqRec'].inject(x)
+    if do_play:
+        play.play(config.notes_[x])
 
 def playback_background( g ):
     import subprocess
     seq = [str(x) for x in g.graph['SeqRec'].seq]
     subprocess.Popen( [ "timeout", "5", "python", "./play.py" ] + seq )
 
-def inject_alphabet_ca3(x, g = None):
+def inject_alphabet_ca3(x, g = None, do_play = False):
     global ca1nrnsNames_
     global reset_all_
     global max_num_press_
@@ -262,7 +262,10 @@ def inject_alphabet_ca3(x, g = None):
     if g is None:
         g = nrns_['ca3.%d'% config.alphabetToNrn_[x] ]
     inject_ap(g)
-    sound.play_int(x)
+
+    if do_play:
+        play.play(config.notes_[x])
+
     add_piano(x)
 
     # same alphabets gets injected into ca1. Print the status of their output.
@@ -274,8 +277,6 @@ def inject_alphabet_ca3(x, g = None):
         title_ += '%.2f|' % g.graph['SeqRec']._output
         if g.graph['SeqRec'].output == 1:
             inject_ap(g)
-            #playback_background( g )
-            playback(g)
             g.graph['SeqRec'].reset()
             reset_all_ = True
 

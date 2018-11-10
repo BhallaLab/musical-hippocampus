@@ -33,7 +33,8 @@ CXXFLAGS_STD        =
 
 ### CXXFLAGS
 ### Flags you might want to set for debugging purpose. Comment to stop.
-CXXFLAGS         += -pedantic -Wall -Wextra
+CXXFLAGS         += -Wall -Wextra -Werror -Wno-unused-variable -Wno-ununsed-function \
+		    -Wno-sign-compare
 
 ### MONITOR_PORT
 ### The port your board is connected to. Using an '*' tries all the ports and finds the right one.

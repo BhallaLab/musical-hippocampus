@@ -5,8 +5,8 @@ import subprocess
 import time
 
 def play(n, delay=0.05):
-    wavfile = os.path.join( 'wav', '%s.wav' % n )
-    subprocess.Popen( [ 'aplay', wavfile ] )
+    wavfile = os.path.join( 'wav', '%s.wav' % n.lower() )
+    subprocess.Popen( [ 'aplay', '-q', wavfile ] )
     time.sleep(delay)
 
 if len(sys.argv) == 2:

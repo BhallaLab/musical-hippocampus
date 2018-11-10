@@ -40,7 +40,7 @@ LPD8806 axon3 = LPD8806( 31, 28, 29 );
 
 LPD8806* axons[] = { &axon0, &axon1, &axon2, &axon3 };
 
-int maxIndex( double* array, int len )
+int maxIndex( double* array, size_t len )
 {
     float max = 0;
     size_t maxi = 0;
@@ -78,13 +78,11 @@ void resetAllLEDs( )
 // Chase one dot down the full strip.
 void colorChase(LPD8806* strip, uint8_t wait )
 {
-    int i;
-
     // Start by turning all pixels off:
-    for(i=0; i<strip->numPixels(); i++) strip->setPixelColor(i, 0);
+    for(size_t i=0; i<strip->numPixels(); i++) strip->setPixelColor(i, 0);
 
     // Then display one pixel at a time:
-    for(i=0; i<strip->numPixels(); i++) 
+    for(size_t i=0; i<strip->numPixels(); i++) 
     {
         strip->setPixelColor(i, strip->Color(0,0,127)); // Set new pixel 'on'
         strip->show();              // Refresh LED states
@@ -99,18 +97,18 @@ void lighupAxon( int buttonId )
 {
     int axonId = buttonId / 2;
     colorChase( axons[ axonId ], 10 );
-    Serial.print( "Axon lighening up : " );
-    Serial.println( axonId );
+    // Serial.print( "Axon lighening up : " );
+    // Serial.println( axonId );
 }
 
 
 // Show progress bar.
-void progressBar( double* match, int len )
+void progressBar( double* match, size_t len )
 {
     size_t maxI = maxIndex( match, len );
     float maxVal = match[ maxI ];
-    Serial.println( "Display progress bar" );
-    unsigned int c = (127 * maxVal) / len;
+    // Serial.println( "Display progress bar" );
+    size_t c = (127 * maxVal) / len;
 
     //  Show the progress bar.
     for (size_t i = 0; i < progressBarLed.numPixels( ); i++) 
@@ -129,7 +127,7 @@ void progressBar( double* match, int len )
     for (size_t i = 0; i < ca1LED.numPixels( ); i++) 
     {
         uint32_t color = ca1LED.Color( 0, 0, 0 );
-        if( ca1Array[maxI] == i ) 
+        if( (size_t)ca1Array[maxI] == i ) 
             color = ca1LED.Color( c, c, c );
         ca1LED.setPixelColor( i, color );
         ca1LED.show( );
