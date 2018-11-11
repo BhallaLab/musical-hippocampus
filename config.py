@@ -20,7 +20,7 @@ sdir_       = os.path.dirname( __file__ )
 # scale the arena by this factor. To make computation faster. After computation
 # is done, we rescale the image back to its original size.
 h_, w_      = 480, 800
-sh_, sw_    = 0.75, 0.75
+sh_, sw_    = 1, 1
 
 background_ = 0
 canvas_     = np.zeros(shape=(int(sh_*h_),int(sw_*w_),3)) + background_

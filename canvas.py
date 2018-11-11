@@ -34,12 +34,7 @@ winName_           = "HIPPOCAMPUS"
 title_             = ''
 match_arduino_     = ''
 
-win_               = cv2.namedWindow( winName_ )
-try:
-    cv2.setWindowProperty(winName_, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-except Exception as e:
-    # Older version
-    cv2.setWindowProperty(winName_, cv2.WND_PROP_FULLSCREEN, cv2.cv.CV_WINDOW_FULLSCREEN)
+win_               = cv2.namedWindow( winName_, cv2.WINDOW_NORMAL )
 
 def int2Clr2(x):
     b = int(x)
@@ -64,7 +59,7 @@ def add_piano( pressed = 0 ):
         p1, p2 = (i*stripeW, h-stripeH), ((i+1)*stripeW, h-1)
         p0 = (i*stripeW+stripeW//2, h-stripeH//2)
         img = np.ascontiguousarray(config.canvas_, dtype=np.uint8)
-        cv2.rectangle( img, p1, p2, int2Clr(color), -1)
+        cv2.rectangle( img, p1, p2, int2Clr2(color), -1)
         cv2.putText( img, str(i+1), p0,  cv2.FONT_HERSHEY_SIMPLEX, 1, int2Clr(128), 2)
         note_loc_[i+1] = (p0,p1,p2)
     if pressed:
@@ -123,7 +118,8 @@ def _add(t1, t2):
     return tuple(map(operator.add, t1, t2))
 
 def show_frame( img, background = True):
-    img = cv2.resize(config.canvas_, (config.w_, config.h_))
+    if config.w_ < 1 or config.h_ < 1:
+        img = cv2.resize(config.canvas_, (config.w_, config.h_))
     if background:
         k = 0.8
         img = k * img + (1-k) * config.backgroundImg_

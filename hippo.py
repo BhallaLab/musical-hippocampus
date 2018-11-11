@@ -47,7 +47,6 @@ def handle_arduio_command( line, q ):
     elif cmd == '#R':
         print( 'Arduino said reset everything.' )
         play.play('a1')
-        play.play('a1')
         canvas.resetAll()
         while not q.empty():
             q.get()
