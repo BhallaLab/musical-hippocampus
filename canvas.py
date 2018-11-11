@@ -184,8 +184,9 @@ def plot_graphs( every = 1 ):
     global hippoImg_
     global nrns_
     for g in nrns_.values():
-        if g.graph['active']:
-            plot_png_using_cv2(g, every)
+        if not g.graph['active']:
+            continue
+        plot_png_using_cv2(g, every)
 
 def update(g):
     aps = g.graph['AP']

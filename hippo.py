@@ -68,11 +68,10 @@ def runApp(q):
         canvas.update_graphs()
         if i % 2 == 0:
             canvas.plot_graphs()
-
-        k = 0.85
-        #  img = k*config.canvas_ + (1-k)*config.backgroundImg_
-        img = config.canvas_
-        canvas.show_frame(np.uint8(img))
+            k = 0.85
+            #  img = k*config.canvas_ + (1-k)*config.backgroundImg_
+            img = config.canvas_
+            canvas.show_frame(np.uint8(img))
         dt = time.time() - t0
         t += dt
         timeWithoutActivity_ += dt
