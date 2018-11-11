@@ -42,18 +42,21 @@ def handle_arduio_command( line, q ):
     if cmd == '#B':
         canvas.inject_alphabet_ca3(1+int(arg))
         timeWithoutActivity_ = 0
-    elif cmd == '#P':
+        return 
+    if cmd == '#P':
         canvas.progressFromArduino(arg)
-    elif cmd == '#R':
+        return 
+    if cmd == '#R':
         print( 'Arduino said reset everything.' )
         play.play('a1')
         canvas.resetAll()
         while not q.empty():
             q.get()
-    elif cmd == '#T':
+        return 
+    if cmd == '#T':
         play.play( arg )
-    else:
-        print( 'Uknown command: %s' % line )
+        return 
+    print( 'Uknown command: %s' % line )
 
 
 def runApp(q):
