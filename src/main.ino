@@ -18,7 +18,7 @@
 #include "led.h"
 
 #define WINDOW_SIZE 20
-#define NUMBER_OF_BUTTONS 8
+#define NUMBER_OF_BUTTONS 16
 
 #define READ_DELAY     2
 
@@ -81,7 +81,7 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = { A0, A1, A2, A3, A4, A5, A6, A7 };
+int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15};
 
 // This button reset the matching results. Everything starts from the begining.
 #define RESET_BUTTON 7
@@ -166,6 +166,11 @@ void setup()
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
 
+
+    // Make pin7 behave as ground.
+    pinMode( 7, OUTPUT);
+    digitalWrite(7, LOW);
+
     /*-----------------------------------------------------------------------------
      *  Now setup LEDs 
      *-----------------------------------------------------------------------------*/
@@ -219,15 +224,33 @@ unsigned long readInput( void )
  * @return The index of button in buttonList_  if a button is pressed, -1
  * otherwise.
  */
-int whichButtonIsPressed( void )
+int whichButtonIsPressed( bool read_from_serial = false )
 {
+
+    if( read_from_serial )
+    {
+        // First check if any button has been pressed.
+        if( Serial.available() > 0)
+        {
+            int i = Serial.read();
+            Serial.print( i );
+            Serial.println( "a" );
+            if( i >= 'a' && i <= 'l' )
+                return i - 97;
+        }
+        delay(READ_DELAY);
+    }
+
+
     int val = -1;
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
         delay(READ_DELAY);
-        val = digitalRead( buttonList_[i] );
+        val = analogRead( buttonList_[i] );
 
-        if(val == 0)
+        Serial.print( val );
+        Serial.print( ',' );
+        if(val < 500)
         {
             // Now wait of button release.
             // Wait for 500 ms for button release else continue.
@@ -240,6 +263,7 @@ int whichButtonIsPressed( void )
             }
         }
     }
+    Serial.println( "");
     return -1;
 }
 
@@ -439,7 +463,18 @@ void test_over_serial( void )
 
 void test( void )
 {
-    int nB = whichButtonIsPressed();
+
+    int nB = -1;
+#if 1
+    // First check if any button has been pressed.
+    if( Serial.available() > 0)
+    {
+        int i = Serial.read();
+        if( i >= 'a' && i <= 'l' )
+            nB =  i;
+    }
+#endif
+
     if( nB > -1 )
     {
         Serial.print( "Button pressed: " );
@@ -474,7 +509,7 @@ void loop()
 {
 #if 1
     readCommandFromSerial( );
-    int buttonId = whichButtonIsPressed( );
+    int buttonId = whichButtonIsPressed( false );
     if( buttonId > -1 )
     {
         // Write the button value. Prefix this line with #B where # means
@@ -488,6 +523,10 @@ void loop()
         num_of_buttons_pressed_ = num_of_buttons_pressed_ % NUMBER_OF_BUTTONS;
         addInput( buttonId );
         matchSequences();
+    }
+    else
+    {
+        delay(200);
     }
 #else
     test( );
