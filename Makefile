@@ -33,7 +33,7 @@ CXXFLAGS_STD        =
 
 ### CXXFLAGS
 ### Flags you might want to set for debugging purpose. Comment to stop.
-CXXFLAGS         += -Wall -Wextra -Werror -Wno-unused-variable -Wno-ununsed-function \
+CXXFLAGS         += -Wall -Wextra -Wno-unused-variable -Wno-ununsed-function \
 		    -Wno-sign-compare
 
 ### MONITOR_PORT

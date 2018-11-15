@@ -54,7 +54,7 @@ def add_piano( pressed = 0 ):
     h, w, _ = config.canvas_.shape 
     stripeW = int(w/config.num_notes_)
     stripeH = int(80 * config.sh_)
-    for i in range(w//stripeW):
+    for i in range(1+w//stripeW):
         color =  255 if i % 2 else 0
         p1, p2 = (i*stripeW, h-stripeH), ((i+1)*stripeW, h-1)
         p0 = (i*stripeW+stripeW//2, h-stripeH//2)
@@ -184,6 +184,7 @@ def plot_png_using_cv2(G, every = 1):
 def plot_graphs( every = 1 ):
     global hippoImg_
     global nrns_
+    return 
     for g in nrns_.values():
         if g.graph['active']:
             plot_png_using_cv2(g, every)
@@ -245,6 +246,7 @@ def create_canvas( ):
 
 def update_graphs():
     global nrns_
+    return 
     [update(g) for g in nrns_.values()]
 
 def update_canvas( ):
@@ -271,7 +273,7 @@ def inject_alphabet( x, g, do_play=False):
 def playback_background( g ):
     import subprocess
     seq = [str(x) for x in g.graph['SeqRec'].seq]
-    subprocess.Popen( [ "timeout", "5", "python", "./play.py" ] + seq )
+    subprocess.Popen( [ "timeout", "3", "python", "./play.py" ] + seq )
 
 def inject_alphabet_ca3(x, g = None, do_play = False):
     global ca1nrnsNames_
@@ -280,27 +282,9 @@ def inject_alphabet_ca3(x, g = None, do_play = False):
     global current_num_press_
     global title_
     current_num_press_ += 1
-
-    if g is None:
-        g = nrns_['ca3.%d'% config.alphabetToNrn_[x] ]
-    inject_ap(g)
-
     if do_play:
         play.play(config.notes_[x])
-
     add_piano(x)
-
-    # same alphabets gets injected into ca1. Print the status of their output.
-    title_ = ''
-    for k in ca1nrnsNames_:
-        g = nrns_[k]
-        inject_alphabet(x, g)
-        #  print( '\t%s' % k, g.graph['SeqRec'] )
-        title_ += '%.2f|' % g.graph['SeqRec']._output
-        if g.graph['SeqRec'].output == 1:
-            inject_ap(g)
-            g.graph['SeqRec'].reset()
-            reset_all_ = True
 
     if current_num_press_ >= max_num_press_:
         current_num_press_ = 0
@@ -319,7 +303,8 @@ def resetAll( delay = 1 ):
         g.graph['SeqRec'].reset()
     reset_all_ = False
     current_num_press_ = 0
-    time.sleep( delay )
+    #  time.sleep( delay )
+    print( ' DONE RESETTING' )
 
 def main():
     global nrns_

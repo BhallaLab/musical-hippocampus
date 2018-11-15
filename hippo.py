@@ -39,6 +39,7 @@ def handle_arduio_command( line, q ):
     cmd, arg = line[:2], line[2:]
     if  len(line) < 2:
         return 
+    print( cmd, arg )
     if cmd == '#B':
         canvas.inject_alphabet_ca3(1+int(arg))
         timeWithoutActivity_ = 0

@@ -17,11 +17,8 @@
 #include "pitches.h"
 #include "led.h"
 
-#define WINDOW_SIZE 20
-#define NUMBER_OF_BUTTONS 12
-
+#define NUMBER_OF_BUTTONS 13
 #define READ_DELAY     2
-
 #define WRITE_DELAY    10
 #define MAX_SEQUENCE_LENGTH 10
 #define MIN_SEQUENCE_LENGTH 6
@@ -81,11 +78,11 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11}; 
-int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3};
+int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A15}; 
+int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3, 4};
 
 // This button reset the matching results. Everything starts from the begining.
-#define RESET_BUTTON 7
+#define RESET_BUTTON  A15
 #define NOTE_DURATION 200
 
 
@@ -99,7 +96,7 @@ int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3};
 int buttonTones_[ ] = { NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5, NOTE_G5
     , NOTE_A5, NOTE_B5, NOTE_A1 };
 
-const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c4","c#4","d4", "d#4", "e4", "f4", "f#4","g4","g#4", "a5", "a#5", "b5" };
+const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c4","c#4","d4", "d#4", "e4", "f4", "f#4","g4","g#4", "a5", "a#5", "b5", "a2" };
 
 /**
  * @brief Input from button is stored here.
@@ -138,10 +135,7 @@ void resetMatchingResult( bool silent )
         matched_seq_[i] = 0.0;
         running_index_[i] = 0;
     }
-
-    if( ! silent )
-        sendToneCommandToSerial( 8 );
-
+    sendToneCommandToSerial( NUMBER_OF_BUTTONS  );
     resetAllLEDs( );
 }
 
@@ -153,13 +147,15 @@ void setup()
 
     pinMode( BUZZER_PIN, OUTPUT );
 
+    pinMode( RESET_BUTTON, INPUT_PULLUP );
+
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
         // i.e. by default these pins are high. When a button is pressed, they
         // go to low.
         pinMode( buttonList_[i], INPUT_PULLUP );
-        pinMode( ledList_[i], OUTPUT);
+        //pinMode( ledList_[i], OUTPUT);
     }
 
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
@@ -207,7 +203,7 @@ void setup()
 unsigned long readInput( void )
 {
     unsigned long sum = 0;
-    for (unsigned int i = 0; i < NUMBER_OF_BUTTONS; i++) 
+    for (unsigned int i = 0; i < NUMBER_OF_BUTTONS-1; i++) 
     {
         int val = digitalRead( buttonList_[i] );
         sum = sum + pow(4, i) * val;
@@ -230,43 +226,24 @@ unsigned long readInput( void )
 int whichButtonIsPressed( bool read_from_serial = false )
 {
 
-    if( read_from_serial )
-    {
-        // First check if any button has been pressed.
-        if( Serial.available() > 0)
-        {
-            int i = Serial.read();
-            Serial.print( i );
-            Serial.println( "a" );
-            if( i >= 'a' && i <= 'l' )
-                return i - 97;
-        }
-        delay(READ_DELAY);
-    }
-
-
     int val = -1;
+    int inRead[NUMBER_OF_BUTTONS] = {};
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
     {
-        delay(READ_DELAY);
-        val = analogRead( buttonList_[i] );
-
-        //Serial.print( val );
-        //Serial.print( ',' );
-        if(val < 500)
-        {
-            // Now wait of button release.
-            // Wait for 500 ms for button release else continue.
-            for (size_t ii = 0; ii < 500 / READ_DELAY; ii++) 
-            {
-                delay( READ_DELAY );
-                val = digitalRead( buttonList_[i] );
-                if( val == 1 )
-                    return i;
-            }
-        }
+        val = digitalRead( buttonList_[i] );
+        inRead[i] = val;
     }
-    // Serial.println( "");
+
+    // Wait for 200 ms for button to be released.
+    delay( 200 );
+    for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
+    {
+        // Now wait of button release.
+        // Wait for 500 ms for button release else continue.
+        val = digitalRead( buttonList_[i] );
+        if( val == 1 && inRead[i] == 0)
+            return i;
+    }
     return -1;
 }
 
@@ -338,32 +315,13 @@ int maxInIArr( int* array, size_t arrayLen )
     return maximum;
 }
 
-void playSequece( int seqid )
-{
-    // Play sequence with id seq
-    int* seq = sequences_[ seqid ];
-    size_t seqLength = seq_length_[ seqid ];
-
-    int duration = 300;
-
-    delay( 1000 );
-    for (size_t i = 0; i < seqLength; i++) 
-    {
-        playNote( seq[i], duration );
-        sendToneCommandToSerial( seq[i] );
-        delay( delays_[seqid][i] * duration );
-    }
-    delay( 1000 );
-}
-
 void matchSequences( void )
 {
     n_button_press_ += 1;
     // At any time, the current button pressed is at input_[0]
     int currVal = input_[0];
     bool noneMatch = true;
-    //Serial.print( "Running index ");
-    //Serial.println( running_index_ );
+
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
     {
         if( currVal == sequences_[i][running_index_[i]] )
@@ -420,15 +378,14 @@ void matchSequences( void )
     }
     else
     {
-        for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
+        for (int i = 0; i < NUMBER_OF_SEQ; i++) 
         {
             if( running_index_[i] >= seq_length_[i] &&
                     matched_seq_[i] / running_index_[i] >= 0.7 )
             {
                 // i'th sequence is matched.
-                // Serial.print( ">> Sequence matched." );
-                // Serial.println( i );
-                playSequece( i );
+                Serial.print( ">> Sequence matched." );
+                Serial.println( i );
                 // Reset everything
                 resetMatchingResult( true );
                 break;
@@ -438,7 +395,7 @@ void matchSequences( void )
 
     // printArray( matched_seq_, NUMBER_OF_SEQ);
     //printIArray( running_index_, NUMBER_OF_SEQ);
-    Serial.print( '\n' );
+    // Serial.print( '\n' );
 }
 
 /**
@@ -506,6 +463,24 @@ void readCommandFromSerial( void )
     //Serial.setTimeout( 1000 );
 }
 
+void checkOrReset( )
+{
+    if( digitalRead( RESET_BUTTON ) == 0 )
+    {
+        // Now wait of button release.
+        // Wait for 500 ms for button release else continue.
+        for (size_t ii = 0; ii < 100 / READ_DELAY; ii++) 
+        {
+            delay( READ_DELAY );
+            if( 1 == digitalRead( RESET_BUTTON ) )
+            {
+                Serial.println( "RESET ALL" );
+                resetMatchingResult( false );
+            }
+        }
+    }
+
+}
 
 // the loop routine runs over and over again forever:
 void loop() 
@@ -513,10 +488,14 @@ void loop()
 #if 1
     readCommandFromSerial( );
     int buttonId = whichButtonIsPressed( false );
+    if( buttonId == RESET_BUTTON )
+    {
+        Serial.println( "RESET BUTTON IS PRESSED" );
+        return;
+    }
+
     
     // Blink the led.
-    digitalWrite( ledList_[buttonId], HIGH);
-
     if( buttonId > -1 )
     {
         // Write the button value. Prefix this line with #B where # means
@@ -531,10 +510,9 @@ void loop()
         addInput( buttonId );
         matchSequences();
     }
-    else
-        delay(200);
 
-    digitalWrite( ledList_[buttonId], LOW);
+    // Switch off madi.
+    // digitalWrite( ledList_[buttonId], LOW);
 
 #else
     test( );

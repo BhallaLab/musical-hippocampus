@@ -35,7 +35,6 @@ canvas_     = np.zeros(shape=(int(sh_*h_),int(sw_*w_),3)) + background_
 # DO not rescale the background. We can add them later.
 backgroundImg_ = cv2.resize( cv2.imread('./hippocampus-800x480.png', 1),(w_, h_))
 
-alphabets_ = [1,2,3,4,5,6,7]
 ca1_ = [ 
         ((sw_*377, sh_*129), 210, './swcs/cell1-11b-CA1.CNG.swc'),
         ((sw_*397, sh_*125), 250, './swcs/cell1-2a-CA1.CNG.swc' ),
@@ -64,9 +63,14 @@ connections_ = [
         (4,[4,4,4,8,7,8]),
         ]
 
-alphabetToNrn_ = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:0, 6:1, 7:2, 8:3, 9:4 }
+notes = ["c4","c#4","d4","d#4"
+        , "e4","f4","f#4","g4"
+        , "g#4", "a5","a#5","b5"
+        ,"a2" ];
 
-notes = ["c5","c#5","d5","e5","f#5","g5","a5","b5","a1" ];
+alphabets_ = list(range(len(notes)))
+alphabetToNrn_ = { i : i % 4 for i in alphabets_ }
+
 notes_ = dict( zip(range(1,len(notes)), notes) )
 
 num_notes_ = len(notes_)
