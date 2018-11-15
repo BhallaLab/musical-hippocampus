@@ -95,10 +95,10 @@ void colorChase(LPD8806* strip, uint8_t wait )
 
 void lighupAxon( int buttonId )
 {
-    int axonId = buttonId / 2;
+    int axonId = buttonId % 4;
     colorChase( axons[ axonId ], 10 );
-    // Serial.print( "Axon lighening up : " );
-    // Serial.println( axonId );
+    Serial.print( "Axon lighening up : " );
+    Serial.println( axonId );
 }
 
 

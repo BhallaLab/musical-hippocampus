@@ -16,7 +16,7 @@ def read_and_execute( serial, q ):
         if q is not None:
             q.put(line)
 
-def main( q = None, port = '/dev/ttyACM0', baud = 19200 ):
+def main( q = None, port = '/dev/ttyACM0', baud = 38400 ):
     global port_
     with serial.Serial( port, baud ) as ser:
         while True:

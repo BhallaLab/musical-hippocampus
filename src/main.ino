@@ -98,7 +98,7 @@ int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A1
 int buttonTones_[ ] = { NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5, NOTE_G5
     , NOTE_A5, NOTE_B5, NOTE_A1 };
 
-const char* buttonTonesStr_[] = { "c5","c#5","d5","e5","f#5","g5","a5","b5","a1" };
+const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c5","c#5","d5", "d#5", "e5", "f5", "f#5","g5","g#5", "a5", "a#5", "b5" };
 
 /**
  * @brief Input from button is stored here.
@@ -148,7 +148,7 @@ void resetMatchingResult( bool silent )
 void setup()
 {
     // Setup up baud rate
-    Serial.begin(19200);
+    Serial.begin(38400);
 
     pinMode( BUZZER_PIN, OUTPUT );
 
@@ -248,8 +248,8 @@ int whichButtonIsPressed( bool read_from_serial = false )
         delay(READ_DELAY);
         val = analogRead( buttonList_[i] );
 
-        Serial.print( val );
-        Serial.print( ',' );
+        //Serial.print( val );
+        //Serial.print( ',' );
         if(val < 500)
         {
             // Now wait of button release.
@@ -263,7 +263,7 @@ int whichButtonIsPressed( bool read_from_serial = false )
             }
         }
     }
-    Serial.println( "");
+    // Serial.println( "");
     return -1;
 }
 
