@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import serial
 import io
 import os
 import re
 import sys
+import serial
 
 stop_ = False
 
@@ -26,4 +26,8 @@ def main( q = None, port = '/dev/ttyACM0', baud = 19200 ):
                 break
 
 if __name__ == '__main__':
-    main( )
+    try:
+        main( )
+    except Exception as e:
+        print( "[WARN ] Could not launch Arduino handler:" % e )
+        

@@ -117,12 +117,13 @@ def _sub(t1, t2):
 def _add(t1, t2):
     return tuple(map(operator.add, t1, t2))
 
-def show_frame( img, background = True):
+def show_frame( img, background = True ):
     if config.w_ < 1 or config.h_ < 1:
         img = cv2.resize(config.canvas_, (config.w_, config.h_))
     if background:
         k = 0.8
         img = k * img + (1-k) * config.backgroundImg_
+
     cv2.imshow( winName_, np.uint8(img) )
     cv2.waitKey(1)
 
@@ -186,6 +187,13 @@ def plot_graphs( every = 1 ):
     for g in nrns_.values():
         if g.graph['active']:
             plot_png_using_cv2(g, every)
+
+def add_inset( inset = None ):
+    c1, r1 = int(config.sw_*150), int(config.sh_*650)
+    c2, r2 = c1 + config.inset_w_, r1 + config.inset_h_
+    if inset is None:
+        inset = random.choice( list(config.images_.values()))
+    config.canvas_[c1:c2,r1:r2,:] = inset
 
 def update(g):
     aps = g.graph['AP']

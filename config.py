@@ -12,10 +12,17 @@ __status__           = "Development"
 import sys
 import os
 import cv2
+import glob
 import numpy as np
 
 args_ = None
 sdir_       = os.path.dirname( __file__ )
+
+image_files_ = glob.glob( os.path.join(sdir_, 'images', '*.jpg' ))
+
+inset_w_, inset_h_ = 75, 75
+images_      = { os.path.basename(f) : cv2.resize(cv2.imread(f,1), 
+                (inset_w_,inset_h_)) for f in image_files_ }
 
 # scale the arena by this factor. To make computation faster. After computation
 # is done, we rescale the image back to its original size.

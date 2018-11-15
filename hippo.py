@@ -66,6 +66,9 @@ def runApp(q):
         if i % 2 == 0:
             canvas.plot_graphs()
 
+        if i % 20 == 0:
+            canvas.add_inset( )
+
         k = 0.85
         #  img = k*config.canvas_ + (1-k)*config.backgroundImg_
         img = config.canvas_
