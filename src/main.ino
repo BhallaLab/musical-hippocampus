@@ -18,7 +18,7 @@
 #include "led.h"
 
 #define WINDOW_SIZE 20
-#define NUMBER_OF_BUTTONS 16
+#define NUMBER_OF_BUTTONS 12
 
 #define READ_DELAY     2
 
@@ -81,11 +81,12 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15};
+int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11}; 
+int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3};
 
 // This button reset the matching results. Everything starts from the begining.
 #define RESET_BUTTON 7
-#define NOTE_DURATION 300
+#define NOTE_DURATION 200
 
 
 /*-----------------------------------------------------------------------------
@@ -98,7 +99,7 @@ int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A1
 int buttonTones_[ ] = { NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5, NOTE_G5
     , NOTE_A5, NOTE_B5, NOTE_A1 };
 
-const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c5","c#5","d5", "d#5", "e5", "f5", "f#5","g5","g#5", "a5", "a#5", "b5" };
+const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c4","c#4","d4", "d#4", "e4", "f4", "f#4","g4","g#4", "a5", "a#5", "b5" };
 
 /**
  * @brief Input from button is stored here.
@@ -158,6 +159,7 @@ void setup()
         // i.e. by default these pins are high. When a button is pressed, they
         // go to low.
         pinMode( buttonList_[i], INPUT_PULLUP );
+        pinMode( ledList_[i], OUTPUT);
     }
 
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
@@ -165,6 +167,7 @@ void setup()
 
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
+
 
 
     // Make pin7 behave as ground.
@@ -346,7 +349,7 @@ void playSequece( int seqid )
     delay( 1000 );
     for (size_t i = 0; i < seqLength; i++) 
     {
-        //playNote( seq[i], duration );
+        playNote( seq[i], duration );
         sendToneCommandToSerial( seq[i] );
         delay( delays_[seqid][i] * duration );
     }
@@ -510,6 +513,10 @@ void loop()
 #if 1
     readCommandFromSerial( );
     int buttonId = whichButtonIsPressed( false );
+    
+    // Blink the led.
+    digitalWrite( ledList_[buttonId], HIGH);
+
     if( buttonId > -1 )
     {
         // Write the button value. Prefix this line with #B where # means
@@ -525,9 +532,10 @@ void loop()
         matchSequences();
     }
     else
-    {
         delay(200);
-    }
+
+    digitalWrite( ledList_[buttonId], LOW);
+
 #else
     test( );
 #endif

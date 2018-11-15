@@ -13,4 +13,7 @@ if len(sys.argv) == 2:
     play( sys.argv[1] )
 else:
     for n in sys.argv[1:]:
-        play( sys.argv[1], 0.5 )
+        if n != '+':
+            play( n, 0.5 )
+        else:
+            time.sleep(0.5)
