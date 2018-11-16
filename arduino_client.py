@@ -10,6 +10,12 @@ import play
 import canvas
 
 stop_ = False
+
+with open( './songs_format.txt', 'r' ) as f:
+    txt = f.read()
+
+seqs_ = [ x for x in txt.split( '\n' ) if x.strip() ]
+
 def _handle_arduio_command( line):
     cmd, arg = line[:2], line[2:]
     print( cmd, arg )
@@ -24,6 +30,8 @@ def _handle_arduio_command( line):
         canvas.resetAll()
     elif cmd == '#T':
         play.play( arg )
+    elif cmd == '#S':
+        play.play_seq( seqs_[int(arg)] )
     else:
         print( 'Uknown command: %s' % line )
 

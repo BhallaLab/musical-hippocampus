@@ -324,12 +324,17 @@ int maxInIArr( int* array, size_t arrayLen )
 
 void playSequence( int i )
 {
+#if 0
     for( int j =0; j < seq_length_[i]; j++ )
     {
         Serial.print( "#T" );
         Serial.println( buttonTonesStr_[sequences_[i][j]] );
         delay(400);
     }
+#else
+    Serial.print( "#S");
+    Serial.println( i );
+#endif
 }
 
 void matchSequences( void )
