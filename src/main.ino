@@ -61,8 +61,9 @@ int seq7[SEQ7_LEN]      = {4,4,4,0,7,4,0,7,4};
 double delay7[SEQ7_LEN] = {1,1,2,1,1,1,0,1,1};
 
 
-int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
-double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4, delay5, delay6 };
+int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6, seq7 };
+double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4, delay5
+    , delay6, delay7 };
 
 #define THRESHOLD_FOR_BUTTON_PRESS  50
 
@@ -84,7 +85,7 @@ float running_mean_ = 0.0;
  *  PIN-13 is never a good idea as input/output pin
  */
 int buttonList_[NUMBER_OF_BUTTONS] = { 
-    A7, A6, A5, A11, A10, A9, A8, A4, A3, A2, A1, A15
+    A7, A6, A5, A11, A10, A9, A8, A4, A3, A2, A1, A11, A15
     }; 
 
 // This button reset the matching results. Everything starts from the begining.
@@ -321,6 +322,16 @@ int maxInIArr( int* array, size_t arrayLen )
     return maximum;
 }
 
+void playSequence( int i )
+{
+    for( int j =0; j < seq_length_[i]; j++ )
+    {
+        Serial.print( "#T" );
+        Serial.println( buttonTonesStr_[sequences_[i][j]] );
+        delay(400);
+    }
+}
+
 void matchSequences( void )
 {
     n_button_press_ += 1;
@@ -386,12 +397,18 @@ void matchSequences( void )
     {
         for (int i = 0; i < NUMBER_OF_SEQ; i++) 
         {
+            //Serial.print( running_index_[i] );
+            //Serial.print( ' ' );
+            //Serial.print( matched_seq_[i] / running_index_[i] );
+            //Serial.println( "|" );
+
             if( running_index_[i] >= seq_length_[i] &&
-                    matched_seq_[i] / running_index_[i] >= 0.7 )
+                    matched_seq_[i] / running_index_[i] >= 0.65 )
             {
                 // i'th sequence is matched.
                 Serial.print( ">> Sequence matched." );
                 Serial.println( i );
+                playSequence( i );
                 // Reset everything
                 resetMatchingResult( true );
                 break;
