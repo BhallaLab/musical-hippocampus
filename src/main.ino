@@ -39,7 +39,7 @@ int seq_length_[NUMBER_OF_SEQ] = {
     SEQ1_LEN, SEQ2_LEN, SEQ3_LEN, SEQ4_LEN, SEQ5_LEN, SEQ6_LEN, SEQ7_LEN
     };
 
-int seq1[SEQ1_LEN]      = { 8,8,8,8,8,8,8,11,4,6,8};
+int seq1[SEQ1_LEN]      = { 8,8,8,8,8,8,8,10,4,6,8};
 double delay1[SEQ1_LEN] = { 1,1,2,1,1,2,1,3,1,1,1 };
 
 int seq2[SEQ2_LEN]      = { 0, 0, 2, 0, 5, 4 };
@@ -54,7 +54,7 @@ double delay4[SEQ4_LEN] = { 1,1,1,1,1,1,1,1,1,1};
 int seq5[SEQ5_LEN]      = { 0, 0, 5, 8, 7, 5};
 double delay5[SEQ5_LEN] = { 1, 1, 1, 1, 1, 1 };
 
-int seq6[SEQ6_LEN]      = {11,4,7,8,11,4};
+int seq6[SEQ6_LEN]      = {11,4,7,8,10,4};
 double delay6[SEQ6_LEN] = { 1,1,2,1,1,1};
 
 int seq7[SEQ7_LEN]      = {4,4,4,0,7,4,0,7,4};
