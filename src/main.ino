@@ -20,41 +20,46 @@
 #define NUMBER_OF_BUTTONS 13
 #define READ_DELAY     2
 #define WRITE_DELAY    10
-#define MAX_SEQUENCE_LENGTH 10
+#define MAX_SEQUENCE_LENGTH 11
 #define MIN_SEQUENCE_LENGTH 6
 
-#define NUMBER_OF_SEQ   6
+#define NUMBER_OF_SEQ   7
 #define SEQ1_LEN    11
 #define SEQ2_LEN    6
-#define SEQ3_LEN    7
-#define SEQ4_LEN    7 
+#define SEQ3_LEN    8
+#define SEQ4_LEN    10 
 #define SEQ5_LEN    6
 #define SEQ6_LEN    6
+#define SEQ7_LEN    9
 
 int wrongMatch_ = 0;
 
 // Length of sequences.
 int seq_length_[NUMBER_OF_SEQ] = { 
-    SEQ1_LEN, SEQ2_LEN, SEQ3_LEN, SEQ4_LEN, SEQ5_LEN, SEQ6_LEN
+    SEQ1_LEN, SEQ2_LEN, SEQ3_LEN, SEQ4_LEN, SEQ5_LEN, SEQ6_LEN, SEQ7_LEN
     };
 
-int seq1[SEQ1_LEN]   = { 3, 3, 3, 3, 3, 3, 3, 5, 0, 2, 3 };
-double delay1[SEQ1_LEN] = { 1, 1, 2, 1, 1, 2, 1, 3, 1, 1, 1 };
+int seq1[SEQ1_LEN]      = { 8,8,8,8,8,8,8,11,4,6,8};
+double delay1[SEQ1_LEN] = { 1,1,2,1,1,2,1,3,1,1,1 };
 
-int seq2[SEQ2_LEN]   = { 0, 0, 2, 0, 4, 3 };
+int seq2[SEQ2_LEN]      = { 0, 0, 2, 0, 5, 4 };
 double delay2[SEQ2_LEN] = { 1, 1, 1, 1, 1, 1 };
 
-int seq3[SEQ3_LEN]   = { 4, 3, 2, 3, 1, 2, 2 };
-double delay3[SEQ3_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+int seq3[SEQ3_LEN]      = {7,7,6,4,6,3,4,4};
+double delay3[SEQ3_LEN] = {1,1,1,1,1,1,1,1};
 
-int seq4[SEQ4_LEN]   = { 0, 0, 5, 5, 6, 6, 5 };
-double delay4[SEQ4_LEN] = { 1, 1, 1, 1, 1, 1, 1 };
+int seq4[SEQ4_LEN]      = {10,0,7,5,7,5,3,5,8,7};
+double delay4[SEQ4_LEN] = { 1,1,1,1,1,1,1,1,1,1};
 
-int seq5[SEQ5_LEN]   = { 3, 3, 3, 7, 6, 7 };
+int seq5[SEQ5_LEN]      = { 0, 0, 5, 8, 7, 5};
 double delay5[SEQ5_LEN] = { 1, 1, 1, 1, 1, 1 };
 
-int seq6[SEQ6_LEN]   = { 3, 2, 0, 3, 2, 0};
-double delay6[SEQ6_LEN] = { 1, 1, 2, 1, 1, 1};
+int seq6[SEQ6_LEN]      = {11,4,7,8,11,4};
+double delay6[SEQ6_LEN] = { 1,1,2,1,1,1};
+
+int seq7[SEQ7_LEN]      = {4,4,4,0,7,4,0,7,4};
+double delay7[SEQ7_LEN] = {1,1,2,1,1,1,0,1,1};
+
 
 int* sequences_[NUMBER_OF_SEQ] = { seq1, seq2, seq3, seq4, seq5, seq6 };
 double* delays_[NUMBER_OF_SEQ] = { delay1, delay2, delay3, delay4, delay5, delay6 };
@@ -78,11 +83,12 @@ float running_mean_ = 0.0;
 /*  List of buttons to get input from 
  *  PIN-13 is never a good idea as input/output pin
  */
-int buttonList_[NUMBER_OF_BUTTONS] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A15}; 
-int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3, 4};
+int buttonList_[NUMBER_OF_BUTTONS] = { 
+    A7, A6, A5, A11, A10, A9, A8, A4, A3, A2, A1, A15
+    }; 
 
 // This button reset the matching results. Everything starts from the begining.
-#define RESET_BUTTON  A15
+#define RESET_BUTTON  12  
 #define NOTE_DURATION 200
 
 
@@ -96,7 +102,10 @@ int ledList_[NUMBER_OF_BUTTONS] = {21, 20, 19, 18, 17, 16, 15, 14, 0, 1, 2, 3, 4
 int buttonTones_[ ] = { NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_E5, NOTE_FS5, NOTE_G5
     , NOTE_A5, NOTE_B5, NOTE_A1 };
 
-const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { "c4","c#4","d4", "d#4", "e4", "f4", "f#4","g4","g#4", "a5", "a#5", "b5", "a2" };
+const char* buttonTonesStr_[NUMBER_OF_BUTTONS] = { 
+    "a4", "a#4", "b4", "c5", "c#5", "d5", "d#5", "e5", "f5", "f#5", "g5", "g#5"
+    , "a2" 
+};
 
 /**
  * @brief Input from button is stored here.
@@ -147,7 +156,7 @@ void setup()
 
     pinMode( BUZZER_PIN, OUTPUT );
 
-    pinMode( RESET_BUTTON, INPUT_PULLUP );
+    pinMode( buttonList_[RESET_BUTTON], INPUT_PULLUP );
 
     // Set the button to be read-only. 
     for (size_t i = 0; i < NUMBER_OF_BUTTONS; i++) 
@@ -155,7 +164,6 @@ void setup()
         // i.e. by default these pins are high. When a button is pressed, they
         // go to low.
         pinMode( buttonList_[i], INPUT_PULLUP );
-        //pinMode( ledList_[i], OUTPUT);
     }
 
     for (size_t i = 0; i < NUMBER_OF_SEQ; i++) 
@@ -163,8 +171,6 @@ void setup()
 
     for (size_t i = 0; i < 3; i++) 
         input_[i] = -1;
-
-
 
     // Make pin7 behave as ground.
     pinMode( 7, OUTPUT);
@@ -465,14 +471,14 @@ void readCommandFromSerial( void )
 
 void checkOrReset( )
 {
-    if( digitalRead( RESET_BUTTON ) == 0 )
+    if( digitalRead( buttonList_[RESET_BUTTON] ) == 0 )
     {
         // Now wait of button release.
         // Wait for 500 ms for button release else continue.
         for (size_t ii = 0; ii < 100 / READ_DELAY; ii++) 
         {
             delay( READ_DELAY );
-            if( 1 == digitalRead( RESET_BUTTON ) )
+            if( 1 == digitalRead( buttonList_[RESET_BUTTON] ) )
             {
                 Serial.println( "RESET ALL" );
                 resetMatchingResult( false );
@@ -491,6 +497,7 @@ void loop()
     if( buttonId == RESET_BUTTON )
     {
         Serial.println( "RESET BUTTON IS PRESSED" );
+        resetMatchingResult( false );
         return;
     }
 

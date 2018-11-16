@@ -63,10 +63,7 @@ connections_ = [
         (4,[4,4,4,8,7,8]),
         ]
 
-notes = ["c4","c#4","d4","d#4"
-        , "e4","f4","f#4","g4"
-        , "g#4", "a5","a#5","b5"
-        ,"a2" ];
+notes = ["a4","a#4","b4","c5","c#5","d5", "d#5", "e5", "f5", "f#5", "g5", "g#5", "a2" ]
 
 alphabets_ = list(range(len(notes)))
 alphabetToNrn_ = { i : i % 4 for i in alphabets_ }

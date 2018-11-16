@@ -5,23 +5,23 @@ import os
 import re
 import sys
 import serial
+import sound
+import play
+import canvas
 
 stop_ = False
-def handle_arduio_command( line, q ):
+def _handle_arduio_command( line):
     cmd, arg = line[:2], line[2:]
+    print( cmd, arg )
     if  len(line) < 2:
         return 
     if cmd == '#B':
-        canvas.inject_alphabet_ca3(1+int(arg))
         timeWithoutActivity_ = 0
     elif cmd == '#P':
-        canvas.progressFromArduino(arg)
+        pass
     elif cmd == '#R':
-        print( 'Arduino said reset everything.' )
         play.play('a1')
         canvas.resetAll()
-        while not q.empty():
-            q.get()
     elif cmd == '#T':
         play.play( arg )
     else:
@@ -35,6 +35,8 @@ def read_and_execute( serial, q ):
     if '#' in line[0]:
         if q is not None:
             q.put(line)
+        else:
+            _handle_arduio_command(line)
 
 def main( q = None, port = '/dev/ttyACM0', baud = 38400 ):
     global port_
@@ -49,5 +51,5 @@ if __name__ == '__main__':
     try:
         main( )
     except Exception as e:
-        print( "[WARN ] Could not launch Arduino handler:" % e )
+        print( "[WARN ] Could not launch Arduino handler: %s" % e )
         
