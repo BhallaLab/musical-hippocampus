@@ -16,7 +16,7 @@ with open( './songs_format.txt', 'r' ) as f:
 
 seqs_ = [ x for x in txt.split( '\n' ) if x.strip() ]
 
-def _handle_arduio_command( line):
+def _handle_arduio_command( line, q = None):
     cmd, arg = line[:2], line[2:]
     print( cmd, arg )
     if  len(line) < 2:

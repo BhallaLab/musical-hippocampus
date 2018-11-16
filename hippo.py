@@ -35,7 +35,13 @@ def on_mouse(event, x, y, flag, params ):
 
 cv2.setMouseCallback( canvas.winName_, on_mouse )
 
+with open( './songs_format.txt', 'r' ) as f:
+    txt = f.read()
+
+seqs_ = [ x for x in txt.split( '\n' ) if x.strip() ]
+
 def handle_arduio_command( line, q ):
+    global seqs_
     cmd, arg = line[:2], line[2:]
     if  len(line) < 2:
         return 
@@ -51,6 +57,8 @@ def handle_arduio_command( line, q ):
         canvas.resetAll()
         while not q.empty():
             q.get()
+    elif cmd == '#S':
+        play.play_seq( seqs_[int(arg)] )
     elif cmd == '#T':
         play.play( arg )
     else:

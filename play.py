@@ -14,7 +14,7 @@ def play_seq( seq ):
         if n != '+':
             play( n, 0.35 )
         else:
-            time.sleep(0.5)
+            time.sleep(0.35)
 
 if len(sys.argv) == 2:
     play( sys.argv[1] )
