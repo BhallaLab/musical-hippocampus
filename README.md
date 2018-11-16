@@ -1,9 +1,12 @@
-# Lab Demo for NCBS Open Day
+# A musical hippocampus
+
+
+# Technical notes
 
 ## Dependencies
 
 On an Debian image with Raspberry support for python installed, we need the
-followings as well::
+followings as well:
 
 
 # Generate audio samples
